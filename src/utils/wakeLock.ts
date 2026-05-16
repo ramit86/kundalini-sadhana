@@ -20,9 +20,7 @@ let fallbackRaf: number | null = null;
 export type WakeLockMode = 'full' | 'limited' | 'inactive';
 
 function devLog(...args: unknown[]) {
-  if (import.meta.env.DEV) {
-    console.log('[wakeLock]', ...args);
-  }
+  void args;
 }
 
 function isSupported(): boolean {

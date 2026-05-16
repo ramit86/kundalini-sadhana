@@ -14,8 +14,8 @@ export default defineConfig({
         name: 'Kundalini Sadhana',
         short_name: 'Sadhana',
         description: 'A private sacred space for daily morning and night Kundalini meditation practice.',
-        theme_color: '#0F0D0A',
-        background_color: '#0F0D0A',
+        theme_color: '#0b0907',
+        background_color: '#0b0907',
         display: 'standalone',
         start_url: '/',
         icons: [

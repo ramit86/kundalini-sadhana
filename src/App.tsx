@@ -25,7 +25,6 @@ function unlockAudioSafe() {
 type Screen = 'home' | 'overview' | 'active' | 'end' | 'admin';
 
 export default function App() {
-  const [mounted, setMounted] = useState(false);
   const [screen, setScreen] = useState<Screen>('home');
   const [session, setSession] = useState<Session | null>(null);
   const [initPracticeIndex, setInitPracticeIndex] = useState(0);
@@ -33,10 +32,6 @@ export default function App() {
   const [endStats, setEndStats] = useState({ practices: 0, minutes: 0 });
   const [todayStatus, setTodayStatus] = useState<TodayStatusMap>({ morning: 'not_started', night: 'not_started' });
   const [streaks, setStreaks] = useState({ morning: 0, night: 0, both: 0 });
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   useEffect(() => {
     try { unlockAudioSafe(); } catch (_) {}
@@ -48,36 +43,19 @@ export default function App() {
     document.addEventListener('click', unlock, { once: true });
   }, []);
 
-  const mountedBadge = mounted ? (
-    <div style={{
-      position: 'fixed',
-      top: 8,
-      left: 8,
-      zIndex: 10000,
-      fontFamily: "'Raleway', sans-serif",
-      fontSize: 10,
-      letterSpacing: '0.08em',
-      textTransform: 'uppercase',
-      color: '#C8A96E',
-      background: 'rgba(10,8,6,0.8)',
-      border: '1px solid rgba(200,169,110,0.25)',
-      borderRadius: 6,
-      padding: '4px 6px',
-      pointerEvents: 'none',
-    }}>
-      App mounted
-    </div>
-  ) : null;
+  const refreshTodayStatus = () => {
+    try {
+      setTodayStatus(getTodayStatus());
+      setStreaks(getStreaks());
+    } catch {
+      setTodayStatus({ morning: 'not_started', night: 'not_started' });
+      setStreaks({ morning: 0, night: 0, both: 0 });
+    }
+  };
 
   useEffect(() => {
-    setTodayStatus(getTodayStatus());
-    setStreaks(getStreaks());
+    refreshTodayStatus();
   }, []);
-
-  const refreshTodayStatus = () => {
-    setTodayStatus(getTodayStatus());
-    setStreaks(getStreaks());
-  };
 
   const handleSelectSession = (key: 'morning' | 'night') => {
     setSession(SESSIONS[key]);
@@ -135,49 +113,46 @@ export default function App() {
   };
 
   return (
-    <>
-      {mountedBadge}
-      <div style={{ width: '100%', height: '100vh', minHeight: '100vh', background: '#0F0D0A', color: '#E8DDD0', position: 'relative', overflow: 'hidden' }}>
-        {screen === 'home' && (
-          <HomeScreen
-            onSelectSession={handleSelectSession}
-            onResume={handleResume}
-            todayStatus={todayStatus}
-            streaks={streaks}
-            onCancelSession={handleCancelSession}
-            onRestartSession={handleRestartSession}
-            onAdmin={() => setScreen('admin')}
-          />
-        )}
-        {screen === 'overview' && session && (
-          <OverviewScreen
-            session={session}
-            onBack={() => setScreen('home')}
-            onBegin={handleBegin}
-          />
-        )}
-        {screen === 'active' && session && (
-          <ActiveScreen
-            session={session}
-            initialPracticeIndex={initPracticeIndex}
-            initialTimeRemaining={initTimeRemaining}
-            onEnd={handleEnd}
-            onGoHome={() => setScreen('home')}
-            onCancelToday={() => handleCancelSession(session.key)}
-          />
-        )}
-        {screen === 'end' && session && (
-          <EndScreen
-            session={session}
-            practicesCompleted={endStats.practices}
-            minutesCompleted={endStats.minutes}
-            onHome={handleHome}
-          />
-        )}
-        {screen === 'admin' && (
-          <AdminScreen onBack={() => setScreen('home')} />
-        )}
-      </div>
-    </>
+    <div style={{ width: '100%', height: '100vh', minHeight: '100vh', background: '#0F0D0A', color: '#E8DDD0', position: 'relative', overflow: 'hidden' }}>
+      {screen === 'home' && (
+        <HomeScreen
+          onSelectSession={handleSelectSession}
+          onResume={handleResume}
+          todayStatus={todayStatus}
+          streaks={streaks}
+          onCancelSession={handleCancelSession}
+          onRestartSession={handleRestartSession}
+          onAdmin={() => setScreen('admin')}
+        />
+      )}
+      {screen === 'overview' && session && (
+        <OverviewScreen
+          session={session}
+          onBack={() => setScreen('home')}
+          onBegin={handleBegin}
+        />
+      )}
+      {screen === 'active' && session && (
+        <ActiveScreen
+          session={session}
+          initialPracticeIndex={initPracticeIndex}
+          initialTimeRemaining={initTimeRemaining}
+          onEnd={handleEnd}
+          onGoHome={() => setScreen('home')}
+          onCancelToday={() => handleCancelSession(session.key)}
+        />
+      )}
+      {screen === 'end' && session && (
+        <EndScreen
+          session={session}
+          practicesCompleted={endStats.practices}
+          minutesCompleted={endStats.minutes}
+          onHome={handleHome}
+        />
+      )}
+      {screen === 'admin' && (
+        <AdminScreen onBack={() => setScreen('home')} />
+      )}
+    </div>
   );
 }

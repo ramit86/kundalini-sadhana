@@ -23,9 +23,7 @@ export default class ErrorBoundary extends React.Component<ErrorBoundaryProps, E
   }
 
   componentDidCatch(error: unknown) {
-    if (import.meta.env.DEV) {
-      console.error('[ErrorBoundary] runtime error', error);
-    }
+    console.error('[ErrorBoundary] runtime error', error);
   }
 
   render() {
@@ -42,17 +40,18 @@ export default class ErrorBoundary extends React.Component<ErrorBoundaryProps, E
           padding: '1rem',
         }}>
           <div style={{
-            maxWidth: 720,
+            maxWidth: 640,
             width: '100%',
-            border: '1px solid rgba(220,90,90,0.35)',
-            background: 'rgba(220,90,90,0.08)',
-            borderRadius: 12,
-            padding: '0.9rem 1rem',
+            border: '1px solid rgba(200,169,110,0.22)',
+            background: 'linear-gradient(180deg, rgba(20,16,12,0.94) 0%, rgba(12,10,8,0.94) 100%)',
+            borderRadius: 14,
+            boxShadow: '0 16px 30px rgba(0,0,0,0.35)',
+            padding: '0.95rem 1rem',
           }}>
-            <div style={{ fontSize: 12, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#E5A0A0', marginBottom: 8 }}>
-              Runtime Error
+            <div style={{ fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#C8A96E', marginBottom: 8 }}>
+              Unexpected Error
             </div>
-            <div style={{ fontSize: 14, lineHeight: 1.5, color: '#F0DADA', wordBreak: 'break-word' }}>
+            <div style={{ fontSize: 13, lineHeight: 1.6, color: '#D7CCBD', wordBreak: 'break-word' }}>
               {this.state.message || 'Unknown runtime error'}
             </div>
           </div>
@@ -63,4 +62,3 @@ export default class ErrorBoundary extends React.Component<ErrorBoundaryProps, E
     return this.props.children;
   }
 }
-

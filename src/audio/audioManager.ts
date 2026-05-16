@@ -13,9 +13,7 @@ let ambientTrack: AmbientTrackState | null = null;
 let ambientFileMissing = false;
 
 function devLog(...args: unknown[]) {
-  if (import.meta.env.DEV) {
-    console.log('[ambient]', ...args);
-  }
+  void args;
 }
 
 export function getAudioCtx(): AudioContext {
