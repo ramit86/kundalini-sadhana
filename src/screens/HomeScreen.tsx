@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { Sun, Moon, RotateCcw, RefreshCw, LogOut, Settings, Check, Calendar, SlidersHorizontal, X, Download, Share2 } from 'lucide-react';
+import { Sun, Moon, RotateCcw, RefreshCw, Settings, Check, Calendar, SlidersHorizontal, X, Download, Share2 } from 'lucide-react';
 import { loadProgress } from '../store/sessionStore';
 import { SESSIONS } from '../data/sessions';
 import { TodayStatusMap } from '../lib/tracker';
-import { useAuth } from '../lib/authContext';
 import DailyTracker from '../components/DailyTracker';
 import { getSettings, updateSettings, PersonalSettings } from '../store/settingsStore';
 
@@ -23,7 +22,6 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 export default function HomeScreen({ onSelectSession, onResume, todayStatus, streaks, onCancelSession, onRestartSession, onAdmin }: Props) {
-  const { profile, signOut } = useAuth();
   const saved = loadProgress();
   const resumeSession = saved ? SESSIONS[saved.sessionKey as 'morning' | 'night'] : null;
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -126,7 +124,7 @@ export default function HomeScreen({ onSelectSession, onResume, todayStatus, str
       <div style={{ position: 'relative', zIndex: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.9rem 1.4rem 0', animation: 'fadeIn 0.5s ease both' }}>
         <div>
           <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: '10px', color: '#C8A96E', letterSpacing: '0.08em', opacity: 0.7 }}>
-            {profile?.display_name || 'Sadhaka'}
+            Sadhaka
           </div>
           <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: '8px', color: '#3A3028', letterSpacing: '0.1em', marginTop: 1 }}>
             {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
@@ -155,9 +153,6 @@ export default function HomeScreen({ onSelectSession, onResume, todayStatus, str
               <Settings size={13} />
             </button>
           )}
-          <button onClick={signOut} style={topBtnStyle} title="Sign out">
-            <LogOut size={13} />
-          </button>
         </div>
       </div>
 

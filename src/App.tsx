@@ -3,11 +3,9 @@ import HomeScreen from './screens/HomeScreen';
 import OverviewScreen from './screens/OverviewScreen';
 import ActiveScreen from './screens/ActiveScreen';
 import EndScreen from './screens/EndScreen';
-import AuthScreen from './screens/AuthScreen';
 import AdminScreen from './screens/AdminScreen';
 import { SESSIONS, Session } from './data/sessions';
 import { loadProgress, clearProgress } from './store/sessionStore';
-import { useAuth } from './lib/authContext';
 import {
   recordCompletion,
   cancelSession,
@@ -27,7 +25,6 @@ function unlockAudioSafe() {
 type Screen = 'home' | 'overview' | 'active' | 'end' | 'admin';
 
 export default function App() {
-  const { user, loading: authLoading } = useAuth();
   const [mounted, setMounted] = useState(false);
   const [screen, setScreen] = useState<Screen>('home');
   const [session, setSession] = useState<Session | null>(null);
@@ -73,17 +70,13 @@ export default function App() {
   ) : null;
 
   useEffect(() => {
-    if (user) {
-      setTodayStatus(getTodayStatus());
-      setStreaks(getStreaks());
-    }
-  }, [user]);
+    setTodayStatus(getTodayStatus());
+    setStreaks(getStreaks());
+  }, []);
 
   const refreshTodayStatus = () => {
-    if (user) {
-      setTodayStatus(getTodayStatus());
-      setStreaks(getStreaks());
-    }
+    setTodayStatus(getTodayStatus());
+    setStreaks(getStreaks());
   };
 
   const handleSelectSession = (key: 'morning' | 'night') => {
@@ -115,29 +108,23 @@ export default function App() {
       const totalMins = Math.round(session.practices.reduce((s, p) => s + p.duration, 0) / 60);
       const practiced = practicesCompleted ?? session.practices.length;
       setEndStats({ practices: practiced, minutes: totalMins });
-      if (user) {
-        recordCompletion(session.key);
-        refreshTodayStatus();
-      }
+      recordCompletion(session.key);
+      refreshTodayStatus();
     }
     clearProgress();
     setScreen('end');
   };
 
   const handleCancelSession = async (key: 'morning' | 'night') => {
-    if (user) {
-      cancelSession(key);
-      refreshTodayStatus();
-    }
+    cancelSession(key);
+    refreshTodayStatus();
     clearProgress();
     setScreen('home');
   };
 
   const handleRestartSession = async (key: 'morning' | 'night') => {
-    if (user) {
-      restartSession(key);
-      refreshTodayStatus();
-    }
+    restartSession(key);
+    refreshTodayStatus();
     handleSelectSession(key);
   };
 
@@ -146,37 +133,6 @@ export default function App() {
     setScreen('home');
     refreshTodayStatus();
   };
-
-  if (authLoading) {
-    return (
-      <>
-        {mountedBadge}
-        <div style={{
-          width: '100%', height: '100vh',
-          background: '#0A0806',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>
-          <div style={{
-            width: 32, height: 32, borderRadius: '50%',
-            border: '1px solid rgba(200,169,110,0.2)',
-            borderTopColor: '#C8A96E',
-            animation: 'spin-slow 1s linear infinite',
-          }} />
-        </div>
-      </>
-    );
-  }
-
-  if (!user) {
-    return (
-      <>
-        {mountedBadge}
-        <div style={{ width: '100%', height: '100vh', background: '#0A0806', overflow: 'hidden' }}>
-          <AuthScreen />
-        </div>
-      </>
-    );
-  }
 
   return (
     <>
