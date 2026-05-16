@@ -103,6 +103,7 @@ export default function ActiveScreen({
   const [practiceTransition, setPracticeTransition] = useState(false);
   const [chakraPanelOpen, setChakraPanelOpen] = useState(false);
   const [wakeLockMode, setWakeLockMode] = useState<WakeLockMode>('inactive');
+  const [showWakeLockLimitedToast, setShowWakeLockLimitedToast] = useState(false);
   const [viewportWidth, setViewportWidth] = useState(
     typeof window !== 'undefined' ? window.innerWidth : 0
   );
@@ -123,6 +124,8 @@ export default function ActiveScreen({
   const practice = session.practices[practiceIndex];
   const cc = CHAKRA_MAP[practice?.chakra] ?? CHAKRA_MAP['Preparation'];
   const chakraInfo = practice ? CHAKRA_INFO[practice.chakra] : undefined;
+  const isMobile = viewportWidth < 700;
+  const showDesktopPlaceholder = viewportWidth >= 1180;
 
   const resetControlsTimer = useCallback(() => {
     setShowControls(true);
@@ -241,6 +244,14 @@ export default function ActiveScreen({
       setWakeLockMode('inactive');
     }
   }, [isRunning]);
+
+  useEffect(() => {
+    if (!isMobile || !isRunning) return;
+    if (wakeLockMode !== 'limited') return;
+    setShowWakeLockLimitedToast(true);
+    const t = window.setTimeout(() => setShowWakeLockLimitedToast(false), 2400);
+    return () => window.clearTimeout(t);
+  }, [isMobile, isRunning, wakeLockMode]);
 
   useEffect(() => {
     document.body.style.overflow = 'hidden';
@@ -376,8 +387,6 @@ export default function ActiveScreen({
   const totalAll = session.practices.reduce((s, p) => s + p.duration, 0);
   const progressPct = Math.round((totalDone / totalAll) * 100);
   const isMorning = session.key === 'morning';
-  const isMobile = viewportWidth < 700;
-  const showDesktopPlaceholder = viewportWidth >= 1180;
   const chakraMeta = CHAKRA_INFO[practice?.chakra ?? 'Preparation'];
   const spiritualBenefits = CHAKRA_SPIRITUAL_BENEFITS[practice?.chakra ?? 'Preparation'] ?? [];
 
@@ -449,11 +458,12 @@ export default function ActiveScreen({
 
       {/* Header */}
       <div style={{
-        padding: isMobile ? '0.55rem 0.65rem' : '0.6rem 1.2rem',
+        padding: isMobile ? '0.42rem 0.6rem' : '0.6rem 1.2rem',
         display: 'flex',
         flexDirection: isMobile ? 'column' : 'row',
         alignItems: isMobile ? 'stretch' : 'center',
-        gap: isMobile ? 7 : 10,
+        justifyContent: isMobile ? 'flex-start' : 'space-between',
+        gap: isMobile ? 5 : 10,
         flexShrink: 0, position: 'relative', zIndex: 2,
         opacity: showControls ? 1 : 0,
         transition: 'opacity 0.5s ease',
@@ -461,119 +471,224 @@ export default function ActiveScreen({
         maxWidth: '100vw',
         overflowX: 'hidden',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0, flexWrap: isMobile ? 'wrap' : 'nowrap' }}>
-          <span style={{
-            fontSize: '9px', letterSpacing: '0.28em',
-            textTransform: 'uppercase', padding: '3px 10px', borderRadius: 10,
-            fontFamily: "'Raleway', sans-serif", fontWeight: 400,
-            background: isMorning ? 'rgba(212,137,42,0.1)' : 'rgba(107,127,191,0.1)',
-            color: isMorning ? '#F2C878' : '#A8B5E8',
-            border: isMorning ? '1px solid rgba(212,137,42,0.18)' : '1px solid rgba(107,127,191,0.18)',
-            whiteSpace: 'nowrap',
-          }}>
-            {session.label}
-          </span>
-          <span style={{ fontFamily: "'Raleway', sans-serif", fontSize: '10px', color: '#3E3530', letterSpacing: '0.06em', whiteSpace: 'nowrap' }}>
-            {practiceIndex + 1} / {session.practices.length}
-          </span>
-          {isRunning && (
-            <div style={{
-              padding: '3px 8px',
-              borderRadius: 8,
-              border: `1px solid ${wakeLockMode === 'full' ? 'rgba(72,176,72,0.25)' : 'rgba(200,169,110,0.2)'}`,
-              background: wakeLockMode === 'full' ? 'rgba(72,176,72,0.08)' : 'rgba(200,169,110,0.08)',
-              color: wakeLockMode === 'full' ? '#6FCB6F' : '#C8A96E',
-              fontFamily: "'Raleway', sans-serif",
-              fontSize: '7px',
-              letterSpacing: '0.13em',
-              textTransform: 'uppercase',
-              whiteSpace: 'nowrap',
-            }}>
-              {wakeLockMode === 'full' ? 'Screen Awake' : 'Screen Awake Limited'}
+        {isMobile ? (
+          <>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', minWidth: 0, gap: 10 }}>
+              <span style={{
+                fontSize: '9px', letterSpacing: '0.28em',
+                textTransform: 'uppercase', padding: '3px 10px', borderRadius: 10,
+                fontFamily: "'Raleway', sans-serif", fontWeight: 400,
+                background: isMorning ? 'rgba(212,137,42,0.1)' : 'rgba(107,127,191,0.1)',
+                color: isMorning ? '#F2C878' : '#A8B5E8',
+                border: isMorning ? '1px solid rgba(212,137,42,0.18)' : '1px solid rgba(107,127,191,0.18)',
+                whiteSpace: 'nowrap',
+              }}>
+                {session.label}
+              </span>
+              <span style={{
+                fontFamily: "'Raleway', sans-serif",
+                fontSize: '9px',
+                color: '#6B5E50',
+                letterSpacing: '0.12em',
+                textTransform: 'uppercase',
+                whiteSpace: 'nowrap',
+              }}>
+                {practiceIndex + 1} / {session.practices.length}
+              </span>
             </div>
-          )}
-          {import.meta.env.DEV && (
-            <div style={{
-              padding: '3px 7px',
-              borderRadius: 8,
-              border: '1px solid rgba(200,169,110,0.12)',
-              background: 'rgba(255,255,255,0.03)',
-              color: '#7E6F5D',
-              fontFamily: "'Raleway', sans-serif",
-              fontSize: '6.5px',
-              letterSpacing: '0.11em',
-              textTransform: 'uppercase',
-              whiteSpace: 'nowrap',
-            }}>
-              ctx:{audioDebug.state} · ambient:{audioDebug.ambientActive ? 'true' : 'false'}
+            <div style={{ display: 'flex', gap: 8, width: '100%', justifyContent: 'center' }}>
+              <button
+                onClick={handleGoHome}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  justifyContent: 'center',
+                  minWidth: 104,
+                  padding: '4px 10px',
+                  borderRadius: 8,
+                  border: '1px solid rgba(200,169,110,0.15)',
+                  background: 'rgba(255,255,255,0.02)',
+                  color: '#8A7A6A',
+                  fontFamily: "'Raleway', sans-serif",
+                  fontSize: '8px',
+                  letterSpacing: '0.12em',
+                  textTransform: 'uppercase',
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                }}
+                title="Go to Home"
+              >
+                <Home size={10} />
+                Home
+              </button>
+              <button
+                onClick={handleCancelToday}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  justifyContent: 'center',
+                  minWidth: 104,
+                  padding: '4px 10px',
+                  borderRadius: 8,
+                  border: '1px solid rgba(220,80,80,0.22)',
+                  background: 'rgba(220,80,80,0.08)',
+                  color: '#E07070',
+                  fontFamily: "'Raleway', sans-serif",
+                  fontSize: '8px',
+                  letterSpacing: '0.12em',
+                  textTransform: 'uppercase',
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                }}
+                title="Cancel today's session"
+              >
+                <XCircle size={10} />
+                Cancel
+              </button>
             </div>
-          )}
-          {import.meta.env.DEV && audioDebug.ambientMissing && (
-            <div style={{
-              padding: '3px 7px',
-              borderRadius: 8,
-              border: '1px solid rgba(220,80,80,0.18)',
-              background: 'rgba(220,80,80,0.08)',
-              color: '#B27C7C',
-              fontFamily: "'Raleway', sans-serif",
-              fontSize: '6.5px',
-              letterSpacing: '0.11em',
-              textTransform: 'uppercase',
-              whiteSpace: 'nowrap',
-            }}>
-              Ambient file missing
+          </>
+        ) : (
+          <>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+              <span style={{
+                fontSize: '9px', letterSpacing: '0.28em',
+                textTransform: 'uppercase', padding: '3px 10px', borderRadius: 10,
+                fontFamily: "'Raleway', sans-serif", fontWeight: 400,
+                background: isMorning ? 'rgba(212,137,42,0.1)' : 'rgba(107,127,191,0.1)',
+                color: isMorning ? '#F2C878' : '#A8B5E8',
+                border: isMorning ? '1px solid rgba(212,137,42,0.18)' : '1px solid rgba(107,127,191,0.18)',
+                whiteSpace: 'nowrap',
+              }}>
+                {session.label}
+              </span>
+              <span style={{ fontFamily: "'Raleway', sans-serif", fontSize: '10px', color: '#3E3530', letterSpacing: '0.06em', whiteSpace: 'nowrap' }}>
+                {practiceIndex + 1} / {session.practices.length}
+              </span>
+              {isRunning && (
+                <div style={{
+                  padding: '3px 8px',
+                  borderRadius: 8,
+                  border: `1px solid ${wakeLockMode === 'full' ? 'rgba(72,176,72,0.25)' : 'rgba(200,169,110,0.2)'}`,
+                  background: wakeLockMode === 'full' ? 'rgba(72,176,72,0.08)' : 'rgba(200,169,110,0.08)',
+                  color: wakeLockMode === 'full' ? '#6FCB6F' : '#C8A96E',
+                  fontFamily: "'Raleway', sans-serif",
+                  fontSize: '7px',
+                  letterSpacing: '0.13em',
+                  textTransform: 'uppercase',
+                  whiteSpace: 'nowrap',
+                }}>
+                  {wakeLockMode === 'full' ? 'Screen Awake' : 'Screen Awake Limited'}
+                </div>
+              )}
+              {import.meta.env.DEV && (
+                <div style={{
+                  padding: '3px 7px',
+                  borderRadius: 8,
+                  border: '1px solid rgba(200,169,110,0.12)',
+                  background: 'rgba(255,255,255,0.03)',
+                  color: '#7E6F5D',
+                  fontFamily: "'Raleway', sans-serif",
+                  fontSize: '6.5px',
+                  letterSpacing: '0.11em',
+                  textTransform: 'uppercase',
+                  whiteSpace: 'nowrap',
+                }}>
+                  ctx:{audioDebug.state} · ambient:{audioDebug.ambientActive ? 'true' : 'false'}
+                </div>
+              )}
+              {import.meta.env.DEV && audioDebug.ambientMissing && (
+                <div style={{
+                  padding: '3px 7px',
+                  borderRadius: 8,
+                  border: '1px solid rgba(220,80,80,0.18)',
+                  background: 'rgba(220,80,80,0.08)',
+                  color: '#B27C7C',
+                  fontFamily: "'Raleway', sans-serif",
+                  fontSize: '6.5px',
+                  letterSpacing: '0.11em',
+                  textTransform: 'uppercase',
+                  whiteSpace: 'nowrap',
+                }}>
+                  Ambient file missing
+                </div>
+              )}
             </div>
-          )}
-        </div>
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', width: isMobile ? '100%' : 'auto', justifyContent: isMobile ? 'flex-start' : 'flex-end' }}>
-          <button
-            onClick={handleGoHome}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 4,
-              padding: '4px 8px',
-              borderRadius: 8,
-              border: '1px solid rgba(200,169,110,0.15)',
-              background: 'rgba(255,255,255,0.02)',
-              color: '#8A7A6A',
-              fontFamily: "'Raleway', sans-serif",
-              fontSize: '8px',
-              letterSpacing: '0.12em',
-              textTransform: 'uppercase',
-              cursor: 'pointer',
-              whiteSpace: 'nowrap',
-            }}
-            title="Go to Home"
-          >
-            <Home size={10} />
-            Home
-          </button>
-          <button
-            onClick={handleCancelToday}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 4,
-              padding: '4px 8px',
-              borderRadius: 8,
-              border: '1px solid rgba(220,80,80,0.22)',
-              background: 'rgba(220,80,80,0.08)',
-              color: '#E07070',
-              fontFamily: "'Raleway', sans-serif",
-              fontSize: '8px',
-              letterSpacing: '0.12em',
-              textTransform: 'uppercase',
-              cursor: 'pointer',
-              whiteSpace: 'nowrap',
-            }}
-            title="Cancel today's session"
-          >
-            <XCircle size={10} />
-            Cancel Today
-          </button>
-        </div>
+            <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
+              <button
+                onClick={handleGoHome}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  padding: '4px 8px',
+                  borderRadius: 8,
+                  border: '1px solid rgba(200,169,110,0.15)',
+                  background: 'rgba(255,255,255,0.02)',
+                  color: '#8A7A6A',
+                  fontFamily: "'Raleway', sans-serif",
+                  fontSize: '8px',
+                  letterSpacing: '0.12em',
+                  textTransform: 'uppercase',
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                }}
+                title="Go to Home"
+              >
+                <Home size={10} />
+                Home
+              </button>
+              <button
+                onClick={handleCancelToday}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  padding: '4px 8px',
+                  borderRadius: 8,
+                  border: '1px solid rgba(220,80,80,0.22)',
+                  background: 'rgba(220,80,80,0.08)',
+                  color: '#E07070',
+                  fontFamily: "'Raleway', sans-serif",
+                  fontSize: '8px',
+                  letterSpacing: '0.12em',
+                  textTransform: 'uppercase',
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                }}
+                title="Cancel today's session"
+              >
+                <XCircle size={10} />
+                Cancel Today
+              </button>
+            </div>
+          </>
+        )}
       </div>
+
+      {isMobile && showWakeLockLimitedToast && (
+        <div style={{
+          position: 'absolute',
+          top: 56,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 12,
+          borderRadius: 10,
+          border: '1px solid rgba(200,169,110,0.2)',
+          background: 'rgba(14,11,8,0.88)',
+          color: '#BBA98E',
+          fontFamily: "'Raleway', sans-serif",
+          fontSize: '9px',
+          letterSpacing: '0.08em',
+          padding: '7px 10px',
+          whiteSpace: 'nowrap',
+          backdropFilter: 'blur(6px)',
+          animation: 'fadeIn 0.2s ease',
+        }}>
+          Sleep protection limited on this device
+        </div>
+      )}
 
       {/* Chakra dots */}
       <div style={{ position: 'relative', zIndex: 2, flexShrink: 0 }}>
