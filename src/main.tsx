@@ -24,4 +24,5 @@ if (rootEl) {
       </ErrorBoundary>
     </StrictMode>
   );
+  document.getElementById('static-debug')?.remove();
 }
