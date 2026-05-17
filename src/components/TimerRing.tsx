@@ -218,8 +218,8 @@ export default function TimerRing({ timeRemaining, totalDuration, chakra, isRunn
           <div style={{
             fontSize: '8px', letterSpacing: '0.35em',
             textTransform: 'uppercase', color: cc.dot,
-            fontFamily: "'Raleway', sans-serif", fontWeight: 300,
-            opacity: 0.75,
+            fontFamily: "'Raleway', sans-serif", fontWeight: 400,
+            opacity: 0.82,
             marginBottom: 4,
             animation: 'glow-pulse 2.5s ease-in-out infinite',
           }}>
@@ -245,7 +245,7 @@ export default function TimerRing({ timeRemaining, totalDuration, chakra, isRunn
           textTransform: 'uppercase',
           color: 'var(--text-subtle)',
           marginTop: 7,
-          fontWeight: 300,
+          fontWeight: 500,
         }}>
           remaining
         </span>

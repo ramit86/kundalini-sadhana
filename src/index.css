@@ -47,26 +47,26 @@
 :root.theme-light {
   color-scheme: light;
   --app-bg: #f5ecdc;
-  --app-text: #4a3828;
+  --app-text: #3f2f22;
   --home-bg-gradient: linear-gradient(165deg, #f7efe1 0%, #f1e5d3 58%, #e8d8bf 100%);
   --card-bg: #f8efdf;
   --card-bg-soft: rgba(251, 243, 230, 0.92);
   --card-bg-alt: linear-gradient(180deg, rgba(250, 242, 230, 0.97) 0%, rgba(244, 233, 215, 0.96) 100%);
   --card-border: rgba(157, 121, 67, 0.28);
-  --text-primary: #3f2f22;
-  --text-muted: #64503c;
-  --text-subtle: #826d55;
-  --gold-accent: #9e793f;
+  --text-primary: #34261b;
+  --text-muted: #4f3d2e;
+  --text-subtle: #6a5540;
+  --gold-accent: #8f6b36;
   --border-soft: rgba(157, 121, 67, 0.24);
   --glow-soft: rgba(158, 121, 63, 0.08);
   --shadow-soft: 0 12px 24px rgba(121, 92, 52, 0.1);
   --surface-bg: #fbf3e5;
   --surface-border: rgba(157, 121, 67, 0.26);
   --surface-text: #3f2f22;
-  --muted-text: #6f5b45;
+  --muted-text: #5c4735;
   --field-bg: rgba(248, 237, 219, 0.9);
   --field-border: rgba(157, 121, 67, 0.26);
-  --field-text: #4f3c2b;
+  --field-text: #453322;
   --select-option-bg: #f5e9d6;
   --select-option-text: #4f3c2b;
   --accent-gold: #9e793f;
@@ -75,10 +75,10 @@
   --overlay-backdrop-strong: rgba(79, 58, 34, 0.4);
   --narration-bg: linear-gradient(to top, rgba(245, 234, 216, 0.98) 0%, rgba(248, 240, 228, 0.88) 100%);
   --narration-border: rgba(157, 121, 67, 0.16);
-  --instruction-text: #4a3929;
-  --instruction-note-text: #6a5540;
+  --instruction-text: #3b2c1f;
+  --instruction-note-text: #584532;
   --button-ghost-bg: rgba(157, 121, 67, 0.08);
-  --button-ghost-fg: #6d5640;
+  --button-ghost-fg: #4f3d2e;
   --divider-soft: rgba(157, 121, 67, 0.16);
   --screen-transition-overlay: rgba(157, 121, 67, 0.08);
 }
