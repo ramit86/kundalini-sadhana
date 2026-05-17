@@ -11,6 +11,7 @@ interface AmbientTrackState {
 
 let ambientTrack: AmbientTrackState | null = null;
 let ambientFileMissing = false;
+let bellBusyUntil = 0;
 
 function devLog(...args: unknown[]) {
   void args;
@@ -55,11 +56,17 @@ export function isAmbientFileMissing(): boolean {
   return ambientFileMissing;
 }
 
+export function getBellBusyMsRemaining(): number {
+  return Math.max(0, bellBusyUntil - Date.now());
+}
+
 // ── Bell ────────────────────────────────────────────────
 export function ringBell(times = 1) {
   try {
     const ctx = getAudioCtx();
     if (ctx.state === 'suspended') ctx.resume();
+    const totalSec = (Math.max(1, times) - 1) * 1.6 + 3.6;
+    bellBusyUntil = Date.now() + totalSec * 1000;
 
     const playTone = (delay: number) => {
       const master = ctx.createGain();

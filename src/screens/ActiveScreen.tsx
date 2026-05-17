@@ -8,8 +8,7 @@ import {
   startAmbient, stopAmbient, setAmbientVolume, ringBell, resumeAudioContextFromGesture, getAudioContextState, isAmbientActive, isAmbientFileMissing,
 } from '../audio/audioManager';
 import {
-  speak, stopSpeaking, buildNarrationText, GuidanceMode,
-  pickBestVoice, getSelectedVoice, setSelectedVoice,
+  playNarrationForPractice, stopSpeaking, GuidanceMode,
 } from '../audio/voiceManager';
 import {
   saveProgress, clearProgress,
@@ -154,13 +153,12 @@ export default function ActiveScreen({
     const p = session.practices[pIdx];
     const mode = gMode ?? guidanceMode;
     if (!p || !voiceOn || mode === 'silent') return;
-    if (!getSelectedVoice()) setSelectedVoice(pickBestVoice()!);
-    const text = buildNarrationText(p.name, p.chakra, p.instruction, p.note, mode);
-    if (!text) return;
-    const preview = text.length > 130 ? text.substring(0, 127) + '…' : text;
-    setNarrationText(preview);
-    speak({
-      text,
+
+    setNarrationText(`${p.name} · ${p.chakra}`);
+    void playNarrationForPractice({
+      name: p.name,
+      chakra: p.chakra,
+      mode,
       onStart: () => setIsSpeaking(true),
       onEnd: () => { setIsSpeaking(false); setNarrationText(''); },
     });
