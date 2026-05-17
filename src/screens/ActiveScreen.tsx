@@ -100,6 +100,7 @@ export default function ActiveScreen({
   const [bellFlash, setBellFlash] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [practiceTransition, setPracticeTransition] = useState(false);
+  const [auraTransitionPulse, setAuraTransitionPulse] = useState(false);
   const [chakraPanelOpen, setChakraPanelOpen] = useState(false);
   const [wakeLockMode, setWakeLockMode] = useState<WakeLockMode>('inactive');
   const [showWakeLockLimitedToast, setShowWakeLockLimitedToast] = useState(false);
@@ -164,23 +165,38 @@ export default function ActiveScreen({
     });
   }, [session, voiceOn, guidanceMode]);
 
-  const loadPractice = useCallback((idx: number, autoStart = false) => {
+  const loadPractice = useCallback((
+    idx: number,
+    autoStart = false,
+    opts?: { transitionBell?: boolean }
+  ) => {
     stopTimer();
     const p = session.practices[idx];
     if (!p) return;
+
+    const shouldTransitionBell = opts?.transitionBell ?? false;
+    if (shouldTransitionBell) ringBell(1);
+
+    const TRANSITION_MS = 820;
+    const SETTLE_MS = 520;
+
     setPracticeIndex(idx);
     setTimeRemaining(p.duration);
     saveProgress(session.key, idx, p.duration);
     haptic('medium');
+
     setPracticeTransition(true);
-    setTimeout(() => setPracticeTransition(false), 700);
+    setAuraTransitionPulse(true);
+    setTimeout(() => setPracticeTransition(false), TRANSITION_MS);
+    setTimeout(() => setAuraTransitionPulse(false), 960);
+
     setTimeout(() => {
       if (voiceOn && guidanceMode !== 'silent') doSpeak(idx);
       if (autoStart) {
+        if (ambientOn) {
+          void startAmbient(p.chakra, ambientVol);
+        }
         setTimeout(() => {
-          if (ambientOn) {
-            void startAmbient(p.chakra, ambientVol);
-          }
           setIsRunning(true);
           if (import.meta.env.DEV) {
             setAudioDebug({
@@ -189,9 +205,9 @@ export default function ActiveScreen({
               ambientMissing: isAmbientFileMissing(),
             });
           }
-        }, 300);
+        }, 120);
       }
-    }, 900);
+    }, SETTLE_MS);
   }, [session, stopTimer, voiceOn, guidanceMode, doSpeak, ambientOn, ambientVol]);
 
   const doEnd = useCallback(() => {
@@ -222,7 +238,7 @@ export default function ActiveScreen({
           const nextIdx = practiceRef.current + 1;
           setTimeout(() => {
             if (nextIdx >= session.practices.length) doEnd();
-            else loadPractice(nextIdx, true);
+            else loadPractice(nextIdx, true, { transitionBell: false });
           }, 1000);
           return 0;
         }
@@ -314,7 +330,7 @@ export default function ActiveScreen({
     stopTimer();
     const next = practiceIndex + 1;
     if (next >= session.practices.length) { doEnd(); return; }
-    loadPractice(next);
+    loadPractice(next, false, { transitionBell: true });
   };
 
   const handleGoHome = () => {
@@ -425,10 +441,11 @@ export default function ActiveScreen({
         width: 420, height: 420, borderRadius: '50%',
         background: `radial-gradient(ellipse at 40% 35%, ${cc.dot}${isRunning ? '20' : '10'} 0%, ${cc.dot}08 40%, transparent 68%)`,
         top: '38%', left: '50%',
-        transform: 'translate(-50%, -50%)',
+        transform: `translate(-50%, -50%) scale(${auraTransitionPulse ? 1.07 : 1})`,
         filter: 'blur(38px)',
         transition: 'background 1.4s ease, opacity 1s ease',
-        animation: isRunning ? 'breathe-active 7s ease-in-out infinite' : 'none',
+        opacity: auraTransitionPulse ? 0.95 : undefined,
+        animation: isRunning || auraTransitionPulse ? 'breathe-active 7s ease-in-out infinite' : 'none',
         zIndex: 0,
       }} />
       <div style={{
@@ -807,7 +824,7 @@ export default function ActiveScreen({
                   background: 'var(--card-bg-soft)',
                   padding: '0.35rem',
                 }}>
-                  <ChakraBodyMap activeChakra={practice?.chakra ?? 'Preparation'} compact />
+                  <ChakraBodyMap activeChakra={practice?.chakra ?? 'Preparation'} compact pulse={practiceTransition} />
                 </div>
               </div>
             )}
@@ -948,7 +965,7 @@ export default function ActiveScreen({
               padding: '1rem',
             }}>
               <div style={{ width: '100%', height: '100%', display: 'grid', gridTemplateRows: '1fr auto', gap: 10 }}>
-                <ChakraBodyMap activeChakra={practice?.chakra ?? 'Preparation'} />
+                <ChakraBodyMap activeChakra={practice?.chakra ?? 'Preparation'} pulse={practiceTransition} />
                 <div style={{ textAlign: 'center', fontFamily: "'Raleway', sans-serif", fontSize: '8px', color: 'var(--text-muted)', letterSpacing: '0.15em', textTransform: 'uppercase' }}>
                   Subtle Body Axis
                 </div>
@@ -1149,7 +1166,15 @@ function InfoChip({ label, value, color }: { label: string; value: string; color
   );
 }
 
-function ChakraBodyMap({ activeChakra, compact = false }: { activeChakra: ChakraKey; compact?: boolean }) {
+function ChakraBodyMap({
+  activeChakra,
+  compact = false,
+  pulse = false,
+}: {
+  activeChakra: ChakraKey;
+  compact?: boolean;
+  pulse?: boolean;
+}) {
   const nodeSize = compact ? 8 : 12;
   const activeAll = activeChakra === 'All Chakras';
 
@@ -1159,6 +1184,9 @@ function ChakraBodyMap({ activeChakra, compact = false }: { activeChakra: Chakra
         position: 'absolute',
         inset: 0,
         background: `radial-gradient(circle at 50% 35%, ${CHAKRA_MAP[activeChakra].dot}20 0%, transparent 62%)`,
+        transition: 'background 0.8s ease, opacity 0.8s ease, transform 0.8s ease',
+        transform: `scale(${pulse ? 1.04 : 1})`,
+        opacity: pulse ? 1 : 0.88,
         pointerEvents: 'none',
       }} />
 
