@@ -428,7 +428,7 @@ export default function ActiveScreen({
       {practiceTransition && (
         <div style={{
           position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 48,
-          background: 'rgba(255,255,255,0.02)',
+          background: 'var(--screen-transition-overlay)',
           animation: 'fadeIn 0.08s ease',
         }} />
       )}
@@ -737,7 +737,7 @@ export default function ActiveScreen({
             borderRadius: 18,
             background: 'var(--card-bg-alt)',
             border: '1px solid var(--card-border)',
-            boxShadow: 'var(--shadow-soft), inset 0 1px 0 rgba(255,255,255,0.02)',
+            boxShadow: 'var(--shadow-soft), inset 0 1px 0 var(--button-ghost-bg)',
             padding: isMobile ? '0.6rem' : '0.9rem 1rem',
             overflow: 'hidden',
             backdropFilter: 'blur(5px)',
@@ -998,13 +998,13 @@ export default function ActiveScreen({
           <Settings2 size={11} />
         </button>
 
-        <div style={{ width: 1, height: 14, background: 'rgba(200,169,110,0.07)' }} />
+        <div style={{ width: 1, height: 14, background: 'var(--divider-soft)' }} />
 
         <AudioPill active={ambientOn} onClick={handleToggleAmbient}
           icon={<Music size={11} style={{ opacity: ambientOn ? 1 : 0.35 }} />}
           label="Ambient" />
 
-        <div style={{ width: 1, height: 14, background: 'rgba(200,169,110,0.07)' }} />
+        <div style={{ width: 1, height: 14, background: 'var(--divider-soft)' }} />
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
           <Volume2 size={10} color="var(--text-subtle)" />
@@ -1060,12 +1060,12 @@ export default function ActiveScreen({
         <div style={{
           position: 'absolute', bottom: 0, left: 0, right: 0,
           padding: '8px 1.4rem',
-          background: 'linear-gradient(to top, rgba(10,8,6,0.97) 0%, rgba(10,8,6,0.8) 100%)',
+          background: 'var(--narration-bg)',
           fontFamily: "'Raleway', sans-serif",
           fontSize: '10.5px', color: 'var(--text-muted)',
           fontStyle: 'italic', letterSpacing: '0.03em',
           textAlign: 'center', lineHeight: 1.55,
-          borderTop: '1px solid rgba(200,169,110,0.06)',
+          borderTop: '1px solid var(--narration-border)',
           zIndex: 10, animation: 'fadeIn 0.4s ease',
           backdropFilter: 'blur(8px)',
         }}>
@@ -1103,8 +1103,8 @@ function AudioPill({
       display: 'flex', alignItems: 'center', gap: 4,
       padding: '4px 10px', borderRadius: 16,
       border: active ? '1px solid rgba(200,169,110,0.32)' : '1px solid rgba(200,169,110,0.09)',
-      background: active ? 'rgba(200,169,110,0.07)' : 'transparent',
-      cursor: 'pointer', color: active ? '#C8A96E' : '#4A4038',
+      background: active ? 'var(--button-ghost-bg)' : 'transparent',
+      cursor: 'pointer', color: active ? 'var(--gold-accent)' : 'var(--button-ghost-fg)',
       fontFamily: "'Raleway', sans-serif",
       fontSize: '9.5px', letterSpacing: '0.1em',
       transition: 'all 0.2s',
@@ -1114,7 +1114,7 @@ function AudioPill({
       {indicator && (
         <span style={{
           width: 4, height: 4, borderRadius: '50%',
-          background: '#C8A96E', display: 'inline-block',
+          background: 'var(--gold-accent)', display: 'inline-block',
           animation: 'pulse-dot 1s ease-in-out infinite', marginLeft: 1,
         }} />
       )}
@@ -1128,18 +1128,18 @@ function ControlBtn({ onClick, title, children }: { onClick: () => void; title: 
       style={{
         width: 52, height: 52, borderRadius: '50%',
         border: '1px solid rgba(200,169,110,0.11)',
-        background: 'rgba(255,255,255,0.02)',
-        cursor: 'pointer', color: '#6A5A4A',
+        background: 'var(--button-ghost-bg)',
+        cursor: 'pointer', color: 'var(--button-ghost-fg)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         transition: 'all 0.2s',
       }}
       onMouseEnter={e => {
         (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(200,169,110,0.28)';
-        (e.currentTarget as HTMLButtonElement).style.color = '#C8A96E';
+        (e.currentTarget as HTMLButtonElement).style.color = 'var(--gold-accent)';
       }}
       onMouseLeave={e => {
         (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(200,169,110,0.11)';
-        (e.currentTarget as HTMLButtonElement).style.color = '#6A5A4A';
+        (e.currentTarget as HTMLButtonElement).style.color = 'var(--button-ghost-fg)';
       }}
     >
       {children}
@@ -1156,10 +1156,10 @@ function InfoChip({ label, value, color }: { label: string; value: string; color
       background: `${color}0F`,
       minWidth: 90,
     }}>
-      <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: '7px', letterSpacing: '0.12em', textTransform: 'uppercase', color: '#675A4B', marginBottom: 2 }}>
+      <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: '7px', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--text-subtle)', marginBottom: 2 }}>
         {label}
       </div>
-      <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: '9px', color: '#AC9A84', lineHeight: 1.35 }}>
+      <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: '9px', color: 'var(--text-muted)', lineHeight: 1.35 }}>
         {value}
       </div>
     </div>

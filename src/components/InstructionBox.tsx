@@ -18,10 +18,10 @@ export default function InstructionBox({ instruction, note, chakraColor = 'rgba(
       <p
         style={{
           fontFamily: "'Raleway', sans-serif",
-          fontSize: '11.5px',
-          color: 'rgba(175,160,140,0.8)',
-          lineHeight: 1.9,
-          fontWeight: 300,
+          fontSize: '12px',
+          color: 'var(--instruction-text)',
+          lineHeight: 1.82,
+          fontWeight: 400,
           letterSpacing: '0.01em',
           margin: 0,
         }}
@@ -32,12 +32,12 @@ export default function InstructionBox({ instruction, note, chakraColor = 'rgba(
           marginTop: '0.9rem',
           fontSize: '10.5px',
           fontStyle: 'italic',
-          color: 'rgba(120,105,90,0.7)',
+          color: 'var(--instruction-note-text)',
           borderLeft: `2px solid ${chakraColor}`,
           paddingLeft: '0.85rem',
           lineHeight: 1.75,
           fontFamily: "'Raleway', sans-serif",
-          fontWeight: 300,
+          fontWeight: 400,
         }}>
           {note}
         </div>

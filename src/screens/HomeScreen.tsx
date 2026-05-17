@@ -184,8 +184,8 @@ export default function HomeScreen({ onSelectSession, onResume, todayStatus, str
                   padding: '9px 12px',
                   borderRadius: 10,
                   border: '1px solid rgba(200,169,110,0.2)',
-                  background: 'rgba(200,169,110,0.07)',
-                  color: '#C8A96E',
+                  background: 'var(--button-ghost-bg)',
+                  color: 'var(--gold-accent)',
                   fontFamily: "'Raleway', sans-serif",
                   fontSize: '9px',
                   letterSpacing: '0.15em',
@@ -237,7 +237,7 @@ export default function HomeScreen({ onSelectSession, onResume, todayStatus, str
               <span style={{ fontFamily: "'Raleway', sans-serif", fontSize: '9px', letterSpacing: '0.22em', textTransform: 'uppercase', color: showTracker ? 'var(--gold-accent)' : 'var(--text-subtle)', flex: 1, textAlign: 'left' }}>
                 28-Day Practice Tracker
               </span>
-              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ transform: showTracker ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', color: '#4A4038' }}>
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ transform: showTracker ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', color: 'var(--text-subtle)' }}>
                 <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </button>
@@ -302,8 +302,8 @@ export default function HomeScreen({ onSelectSession, onResume, todayStatus, str
           {bothDone && (
             <div style={{ textAlign: 'center', marginTop: '1.4rem', ...anim(300) }}>
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 16px', borderRadius: 20, background: 'rgba(200,169,110,0.08)', border: '1px solid rgba(200,169,110,0.18)' }}>
-                <Check size={12} color="#C8A96E" />
-                <span style={{ fontFamily: "'Raleway', sans-serif", fontSize: '9px', color: '#C8A96E', letterSpacing: '0.2em', textTransform: 'uppercase' }}>Both sessions complete today</span>
+                <Check size={12} color="var(--gold-accent)" />
+                <span style={{ fontFamily: "'Raleway', sans-serif", fontSize: '9px', color: 'var(--gold-accent)', letterSpacing: '0.2em', textTransform: 'uppercase' }}>Both sessions complete today</span>
               </div>
             </div>
           )}
@@ -316,7 +316,7 @@ export default function HomeScreen({ onSelectSession, onResume, todayStatus, str
 
       {/* Cancel confirm dialog */}
       {cancelConfirm && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 50, background: 'rgba(5,4,3,0.88)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem', animation: 'fadeIn 0.2s ease both' }}>
+        <div style={{ position: 'fixed', inset: 0, zIndex: 50, background: 'var(--overlay-backdrop)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem', animation: 'fadeIn 0.2s ease both' }}>
           <div style={{ width: '100%', maxWidth: 320, background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: 20, padding: '1.7rem', animation: 'scaleIn 0.22s ease both', boxShadow: 'var(--shadow-soft)' }}>
             <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.4rem', color: 'var(--text-primary)', marginBottom: 8 }}>Cancel Session?</div>
             <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: '11px', color: 'var(--text-muted)', lineHeight: 1.7, marginBottom: 20 }}>
@@ -331,11 +331,11 @@ export default function HomeScreen({ onSelectSession, onResume, todayStatus, str
       )}
 
       {showSettingsModal && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 55, background: 'rgba(5,4,3,0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.2rem', animation: 'fadeIn 0.2s ease both' }}>
+        <div style={{ position: 'fixed', inset: 0, zIndex: 55, background: 'var(--overlay-backdrop-strong)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.2rem', animation: 'fadeIn 0.2s ease both' }}>
           <div style={{ width: '100%', maxWidth: 420, maxHeight: '88vh', overflowY: 'auto', background: 'var(--surface-bg)', border: '1px solid var(--surface-border)', borderRadius: 18, padding: '1rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
               <div style={{ flex: 1 }}>
-                <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: '8px', color: '#C8A96E', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 3 }}>Personal</div>
+                <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: '8px', color: 'var(--gold-accent)', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 3 }}>Personal</div>
                 <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.45rem', color: 'var(--surface-text)' }}>Settings</div>
               </div>
               <button onClick={() => setShowSettingsModal(false)} style={{ width: 30, height: 30, borderRadius: 9, border: '1px solid var(--border-soft)', background: 'var(--card-bg-soft)', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -475,7 +475,7 @@ function TodayStatusBar({
 function StreakPill({ label, value, color }: { label: string; value: number; color: string }) {
   return (
     <div style={{ flex: 1, textAlign: 'center' }}>
-      <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: '7px', letterSpacing: '0.14em', textTransform: 'uppercase', color: '#4A4038' }}>
+      <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: '7px', letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--text-subtle)' }}>
         {label}
       </div>
       <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '0.95rem', color, lineHeight: 1.1 }}>
@@ -557,7 +557,7 @@ function SessionCard({ onClick, icon, accentColor, title, subtitle, status, onCa
       {status === 'cancelled' && (
         <button
           onClick={e => { e.stopPropagation(); onRestart(); }}
-          style={{ position: 'absolute', top: 9, right: 9, borderRadius: 8, border: '1px solid rgba(200,169,110,0.2)', background: 'rgba(200,169,110,0.08)', cursor: 'pointer', color: '#C8A96E', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s', padding: '4px 7px', fontFamily: "'Raleway', sans-serif", fontSize: '7px', letterSpacing: '0.15em', textTransform: 'uppercase' }}
+          style={{ position: 'absolute', top: 9, right: 9, borderRadius: 8, border: '1px solid var(--card-border)', background: 'var(--button-ghost-bg)', cursor: 'pointer', color: 'var(--gold-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s', padding: '4px 7px', fontFamily: "'Raleway', sans-serif", fontSize: '7px', letterSpacing: '0.15em', textTransform: 'uppercase' }}
           title="Restart today's session"
         >
           Restart Today
