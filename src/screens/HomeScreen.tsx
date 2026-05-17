@@ -4,7 +4,7 @@ import { loadProgress } from '../store/sessionStore';
 import { SESSIONS } from '../data/sessions';
 import { TodayStatusMap } from '../lib/tracker';
 import DailyTracker from '../components/DailyTracker';
-import { getSettings, updateSettings, PersonalSettings } from '../store/settingsStore';
+import { getSettings, updateSettings, PersonalSettings, ThemeMode } from '../store/settingsStore';
 
 interface Props {
   onSelectSession: (key: 'morning' | 'night') => void;
@@ -114,7 +114,7 @@ export default function HomeScreen({ onSelectSession, onResume, todayStatus, str
   return (
     <div style={{
       width: '100%', height: '100%', display: 'flex', flexDirection: 'column',
-      background: 'linear-gradient(160deg, #0A0806 0%, #100D09 60%, #0D0A07 100%)',
+      background: 'var(--home-bg-gradient)',
       overflow: 'hidden', position: 'relative',
     }}>
       <canvas ref={canvasRef} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 0 }} />
@@ -332,11 +332,11 @@ export default function HomeScreen({ onSelectSession, onResume, todayStatus, str
 
       {showSettingsModal && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 55, background: 'rgba(5,4,3,0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.2rem', animation: 'fadeIn 0.2s ease both' }}>
-          <div style={{ width: '100%', maxWidth: 420, maxHeight: '88vh', overflowY: 'auto', background: 'linear-gradient(160deg, #0E0B08 0%, #0C0906 100%)', border: '1px solid rgba(200,169,110,0.16)', borderRadius: 18, padding: '1rem' }}>
+          <div style={{ width: '100%', maxWidth: 420, maxHeight: '88vh', overflowY: 'auto', background: 'var(--surface-bg)', border: '1px solid var(--surface-border)', borderRadius: 18, padding: '1rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
               <div style={{ flex: 1 }}>
                 <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: '8px', color: '#C8A96E', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 3 }}>Personal</div>
-                <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.45rem', color: '#EDE5DA' }}>Settings</div>
+                <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.45rem', color: 'var(--surface-text)' }}>Settings</div>
               </div>
               <button onClick={() => setShowSettingsModal(false)} style={{ width: 30, height: 30, borderRadius: 9, border: '1px solid rgba(200,169,110,0.12)', background: 'rgba(255,255,255,0.02)', color: '#6B5E50', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <X size={14} />
@@ -347,6 +347,14 @@ export default function HomeScreen({ onSelectSession, onResume, todayStatus, str
               <select value={personalSettings.language} onChange={e => applySetting('language', e.target.value as PersonalSettings['language'])} style={settingsSelectStyle}>
                 <option value="english">English</option>
                 <option value="hindi">Hindi</option>
+              </select>
+            </SettingsRow>
+
+            <SettingsRow label="Theme">
+              <select value={personalSettings.themeMode} onChange={e => applySetting('themeMode', e.target.value as ThemeMode)} style={settingsSelectStyle}>
+                <option value="dark">Dark</option>
+                <option value="light">Light</option>
+                <option value="auto">Auto</option>
               </select>
             </SettingsRow>
 
@@ -402,8 +410,8 @@ export default function HomeScreen({ onSelectSession, onResume, todayStatus, str
 
 function SettingsRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '8px 10px', borderRadius: 10, border: '1px solid rgba(200,169,110,0.08)', background: 'rgba(255,255,255,0.015)', marginBottom: 7 }}>
-      <span style={{ fontFamily: "'Raleway', sans-serif", fontSize: '9px', color: '#BBA98E', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{label}</span>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '8px 10px', borderRadius: 10, border: '1px solid var(--surface-border)', background: 'var(--field-bg)', marginBottom: 7 }}>
+      <span style={{ fontFamily: "'Raleway', sans-serif", fontSize: '9px', color: 'var(--muted-text)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{label}</span>
       {children}
     </div>
   );
@@ -561,9 +569,9 @@ function SessionCard({ onClick, icon, accentColor, title, subtitle, status, onCa
 
 const topBtnStyle: React.CSSProperties = {
   width: 32, height: 32, borderRadius: 9,
-  border: '1px solid rgba(200,169,110,0.1)',
-  background: 'rgba(255,255,255,0.02)',
-  cursor: 'pointer', color: '#4A4038',
+  border: '1px solid var(--surface-border)',
+  background: 'var(--field-bg)',
+  cursor: 'pointer', color: 'var(--muted-text)',
   display: 'flex', alignItems: 'center', justifyContent: 'center',
   transition: 'all 0.2s',
 };
@@ -571,9 +579,9 @@ const topBtnStyle: React.CSSProperties = {
 const settingsSelectStyle: React.CSSProperties = {
   minWidth: 118,
   borderRadius: 8,
-  border: '1px solid rgba(200,169,110,0.14)',
-  background: 'rgba(255,255,255,0.02)',
-  color: '#C8B89A',
+  border: '1px solid var(--field-border)',
+  background: 'var(--field-bg)',
+  color: 'var(--field-text)',
   fontFamily: "'Raleway', sans-serif",
   fontSize: '10px',
   padding: '6px 8px',

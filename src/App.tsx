@@ -6,6 +6,7 @@ import EndScreen from './screens/EndScreen';
 import AdminScreen from './screens/AdminScreen';
 import { SESSIONS, Session } from './data/sessions';
 import { loadProgress, clearProgress } from './store/sessionStore';
+import { getSettings, SETTINGS_CHANGED_EVENT, ThemeMode } from './store/settingsStore';
 import {
   recordCompletion,
   cancelSession,
@@ -23,6 +24,17 @@ function unlockAudioSafe() {
 }
 
 type Screen = 'home' | 'overview' | 'active' | 'end' | 'admin';
+type ResolvedTheme = 'dark' | 'light';
+
+function resolveTheme(themeMode: ThemeMode, prefersDark: boolean): ResolvedTheme {
+  if (themeMode === 'auto') return prefersDark ? 'dark' : 'light';
+  return themeMode;
+}
+
+function applyTheme(mode: ResolvedTheme) {
+  if (typeof document === 'undefined') return;
+  document.documentElement.setAttribute('data-theme', mode);
+}
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>('home');
@@ -41,6 +53,37 @@ export default function App() {
     const unlock = () => { try { unlockAudioSafe(); } catch (_) {} };
     document.addEventListener('touchstart', unlock, { once: true });
     document.addEventListener('click', unlock, { once: true });
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const media = window.matchMedia('(prefers-color-scheme: dark)');
+    const mediaAny = media as MediaQueryList & {
+      addListener?: (listener: (event: MediaQueryListEvent) => void) => void;
+      removeListener?: (listener: (event: MediaQueryListEvent) => void) => void;
+    };
+    const applyFromSettings = () => {
+      try {
+        const settings = getSettings();
+        const resolved = resolveTheme(settings.themeMode, media.matches);
+        applyTheme(resolved);
+      } catch {
+        applyTheme('dark');
+      }
+    };
+
+    const onSettingsChanged = () => applyFromSettings();
+    const onPrefChange = () => applyFromSettings();
+    applyFromSettings();
+
+    window.addEventListener(SETTINGS_CHANGED_EVENT, onSettingsChanged as EventListener);
+    if (typeof mediaAny.addEventListener === 'function') mediaAny.addEventListener('change', onPrefChange);
+    else mediaAny.addListener?.(onPrefChange);
+    return () => {
+      window.removeEventListener(SETTINGS_CHANGED_EVENT, onSettingsChanged as EventListener);
+      if (typeof mediaAny.removeEventListener === 'function') mediaAny.removeEventListener('change', onPrefChange);
+      else mediaAny.removeListener?.(onPrefChange);
+    };
   }, []);
 
   const refreshTodayStatus = () => {
@@ -113,7 +156,7 @@ export default function App() {
   };
 
   return (
-    <div style={{ width: '100%', height: '100vh', minHeight: '100vh', background: '#0F0D0A', color: '#E8DDD0', position: 'relative', overflow: 'hidden' }}>
+    <div style={{ width: '100%', height: '100vh', minHeight: '100vh', background: 'var(--app-bg)', color: 'var(--app-text)', position: 'relative', overflow: 'hidden' }}>
       {screen === 'home' && (
         <HomeScreen
           onSelectSession={handleSelectSession}
