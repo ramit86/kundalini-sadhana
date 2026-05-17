@@ -396,7 +396,7 @@ export default function ActiveScreen({
       style={{
         width: '100%', maxWidth: '100vw', height: '100%',
         display: 'flex', flexDirection: 'column',
-        background: '#0A0806',
+        background: 'var(--app-bg)',
         overflow: 'hidden', overflowX: 'hidden', touchAction: 'none',
         position: 'relative',
       }}
@@ -445,7 +445,7 @@ export default function ActiveScreen({
       }} />
 
       {/* Progress bar */}
-      <div style={{ height: 2, background: 'rgba(200,169,110,0.05)', flexShrink: 0, position: 'relative', zIndex: 2 }}>
+      <div style={{ height: 2, background: 'var(--border-soft)', flexShrink: 0, position: 'relative', zIndex: 2 }}>
         <div style={{
           height: '100%',
           background: `linear-gradient(to right, ${cc.dot}77, ${cc.dot})`,
@@ -488,7 +488,7 @@ export default function ActiveScreen({
               <span style={{
                 fontFamily: "'Raleway', sans-serif",
                 fontSize: '9px',
-                color: '#6B5E50',
+                color: 'var(--text-muted)',
                 letterSpacing: '0.12em',
                 textTransform: 'uppercase',
                 whiteSpace: 'nowrap',
@@ -507,9 +507,9 @@ export default function ActiveScreen({
                   minWidth: 104,
                   padding: '4px 10px',
                   borderRadius: 8,
-                  border: '1px solid rgba(200,169,110,0.15)',
-                  background: 'rgba(255,255,255,0.02)',
-                  color: '#8A7A6A',
+                  border: '1px solid var(--card-border)',
+                  background: 'var(--card-bg-soft)',
+                  color: 'var(--text-muted)',
                   fontFamily: "'Raleway', sans-serif",
                   fontSize: '8px',
                   letterSpacing: '0.12em',
@@ -563,7 +563,7 @@ export default function ActiveScreen({
               }}>
                 {session.label}
               </span>
-              <span style={{ fontFamily: "'Raleway', sans-serif", fontSize: '10px', color: '#3E3530', letterSpacing: '0.06em', whiteSpace: 'nowrap' }}>
+              <span style={{ fontFamily: "'Raleway', sans-serif", fontSize: '10px', color: 'var(--text-subtle)', letterSpacing: '0.06em', whiteSpace: 'nowrap' }}>
                 {practiceIndex + 1} / {session.practices.length}
               </span>
               {isRunning && (
@@ -588,7 +588,7 @@ export default function ActiveScreen({
                   borderRadius: 8,
                   border: '1px solid rgba(200,169,110,0.12)',
                   background: 'rgba(255,255,255,0.03)',
-                  color: '#7E6F5D',
+                  color: 'var(--text-muted)',
                   fontFamily: "'Raleway', sans-serif",
                   fontSize: '6.5px',
                   letterSpacing: '0.11em',
@@ -624,9 +624,9 @@ export default function ActiveScreen({
                   gap: 4,
                   padding: '4px 8px',
                   borderRadius: 8,
-                  border: '1px solid rgba(200,169,110,0.15)',
-                  background: 'rgba(255,255,255,0.02)',
-                  color: '#8A7A6A',
+                  border: '1px solid var(--card-border)',
+                  background: 'var(--card-bg-soft)',
+                  color: 'var(--text-muted)',
                   fontFamily: "'Raleway', sans-serif",
                   fontSize: '8px',
                   letterSpacing: '0.12em',
@@ -675,9 +675,9 @@ export default function ActiveScreen({
           transform: 'translateX(-50%)',
           zIndex: 12,
           borderRadius: 10,
-          border: '1px solid rgba(200,169,110,0.2)',
-          background: 'rgba(14,11,8,0.88)',
-          color: '#BBA98E',
+          border: '1px solid var(--card-border)',
+          background: 'var(--card-bg)',
+          color: 'var(--text-muted)',
           fontFamily: "'Raleway', sans-serif",
           fontSize: '9px',
           letterSpacing: '0.08em',
@@ -720,9 +720,9 @@ export default function ActiveScreen({
             display: 'flex',
             flexDirection: 'column',
             borderRadius: 18,
-            background: 'linear-gradient(180deg, rgba(18,14,10,0.92) 0%, rgba(12,10,8,0.82) 100%)',
-            border: '1px solid rgba(200,169,110,0.14)',
-            boxShadow: '0 24px 44px rgba(0,0,0,0.36), inset 0 1px 0 rgba(255,255,255,0.02)',
+            background: 'var(--card-bg-alt)',
+            border: '1px solid var(--card-border)',
+            boxShadow: 'var(--shadow-soft), inset 0 1px 0 rgba(255,255,255,0.02)',
             padding: isMobile ? '0.6rem' : '0.9rem 1rem',
             overflow: 'hidden',
             backdropFilter: 'blur(5px)',
@@ -760,7 +760,7 @@ export default function ActiveScreen({
                 </div>
                 <div
                   key={`name-${practiceIndex}`}
-                  style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 'clamp(1.05rem, 4vw, 1.4rem)', fontWeight: 400, color: '#EDE5DA', lineHeight: 1.2, animation: 'fadeDown 0.4s ease both' }}
+                  style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 'clamp(1.05rem, 4vw, 1.4rem)', fontWeight: 400, color: 'var(--text-primary)', lineHeight: 1.2, animation: 'fadeDown 0.4s ease both' }}
                 >
                   {practice?.name}
                 </div>
@@ -805,8 +805,8 @@ export default function ActiveScreen({
                   width: '100%',
                   maxWidth: 180,
                   borderRadius: 16,
-                  border: '1px solid rgba(200,169,110,0.1)',
-                  background: 'rgba(255,255,255,0.01)',
+                  border: '1px solid var(--border-soft)',
+                  background: 'var(--card-bg-soft)',
                   padding: '0.35rem',
                 }}>
                   <ChakraBodyMap activeChakra={practice?.chakra ?? 'Preparation'} compact />
@@ -864,8 +864,8 @@ export default function ActiveScreen({
                   minHeight: 0,
                   width: '100%',
                   borderRadius: 14,
-                  border: '1px solid rgba(200,169,110,0.1)',
-                  background: 'linear-gradient(180deg, rgba(255,255,255,0.015) 0%, rgba(255,255,255,0.01) 100%)',
+                  border: '1px solid var(--border-soft)',
+                  background: 'var(--card-bg-soft)',
                   padding: isMobile ? '0.58rem' : '0.8rem',
                   animation: 'fadeUp 0.5s 0.1s ease both',
                   overflow: 'hidden',
@@ -879,8 +879,8 @@ export default function ActiveScreen({
                   <div style={{
                     marginTop: 8,
                     borderRadius: 12,
-                    border: '1px solid rgba(200,169,110,0.12)',
-                    background: 'rgba(10,8,6,0.34)',
+                    border: '1px solid var(--border-soft)',
+                    background: 'var(--card-bg-soft)',
                     overflow: 'hidden',
                   }}>
                     <button
@@ -888,9 +888,9 @@ export default function ActiveScreen({
                       style={{
                         width: '100%',
                         border: 'none',
-                        borderBottom: chakraPanelOpen ? '1px solid rgba(200,169,110,0.1)' : 'none',
+                        borderBottom: chakraPanelOpen ? '1px solid var(--border-soft)' : 'none',
                         background: 'transparent',
-                        color: '#BFAE96',
+                        color: 'var(--text-muted)',
                         display: 'flex',
                         alignItems: 'center',
                         gap: 8,
@@ -915,7 +915,7 @@ export default function ActiveScreen({
                           <InfoChip label="Element" value={chakraMeta.element} color={cc.dot} />
                           <InfoChip label="Bija" value={chakraMeta.bijaMantra || '—'} color={cc.dot} />
                         </div>
-                        <p style={{ margin: '0 0 7px', fontFamily: "'Raleway', sans-serif", fontSize: '10.5px', lineHeight: 1.65, color: '#8D7D6B' }}>
+                        <p style={{ margin: '0 0 7px', fontFamily: "'Raleway', sans-serif", fontSize: '10.5px', lineHeight: 1.65, color: 'var(--text-muted)' }}>
                           {CHAKRA_SHORT_MEANING[practice?.chakra ?? 'Preparation'] ?? chakraMeta.spiritualMeaning.split('.')[0]}
                         </p>
                         {spiritualBenefits.length > 0 && (
@@ -923,7 +923,7 @@ export default function ActiveScreen({
                             {spiritualBenefits.slice(0, 3).map((b, idx) => (
                               <div key={idx} style={{ display: 'flex', gap: 6, alignItems: 'flex-start' }}>
                                 <span style={{ width: 5, height: 5, marginTop: 6, borderRadius: '50%', background: cc.dot, opacity: 0.8, flexShrink: 0 }} />
-                                <span style={{ fontFamily: "'Raleway', sans-serif", fontSize: '10px', lineHeight: 1.6, color: '#7C6E5E' }}>{b}</span>
+                                <span style={{ fontFamily: "'Raleway', sans-serif", fontSize: '10px', lineHeight: 1.6, color: 'var(--text-muted)' }}>{b}</span>
                               </div>
                             ))}
                           </div>
@@ -939,8 +939,8 @@ export default function ActiveScreen({
           {showDesktopPlaceholder && (
             <div style={{
               borderRadius: 18,
-              border: '1px solid rgba(200,169,110,0.1)',
-              background: 'linear-gradient(180deg, rgba(255,255,255,0.012) 0%, rgba(255,255,255,0.006) 100%)',
+              border: '1px solid var(--border-soft)',
+              background: 'var(--card-bg-soft)',
               position: 'relative',
               overflow: 'hidden',
               minHeight: 0,
@@ -951,7 +951,7 @@ export default function ActiveScreen({
             }}>
               <div style={{ width: '100%', height: '100%', display: 'grid', gridTemplateRows: '1fr auto', gap: 10 }}>
                 <ChakraBodyMap activeChakra={practice?.chakra ?? 'Preparation'} />
-                <div style={{ textAlign: 'center', fontFamily: "'Raleway', sans-serif", fontSize: '8px', color: 'rgba(200,169,110,0.55)', letterSpacing: '0.15em', textTransform: 'uppercase' }}>
+                <div style={{ textAlign: 'center', fontFamily: "'Raleway', sans-serif", fontSize: '8px', color: 'var(--text-muted)', letterSpacing: '0.15em', textTransform: 'uppercase' }}>
                   Subtle Body Axis
                 </div>
               </div>
@@ -975,8 +975,8 @@ export default function ActiveScreen({
         <button onClick={() => setShowVoicePicker(true)}
           style={{
             width: 28, height: 28, borderRadius: '50%',
-            border: '1px solid rgba(200,169,110,0.1)',
-            background: 'transparent', cursor: 'pointer', color: '#3E3530',
+            border: '1px solid var(--border-soft)',
+            background: 'transparent', cursor: 'pointer', color: 'var(--text-subtle)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             transition: 'all 0.2s',
           }}>
@@ -992,7 +992,7 @@ export default function ActiveScreen({
         <div style={{ width: 1, height: 14, background: 'rgba(200,169,110,0.07)' }} />
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-          <Volume2 size={10} color="#3E3530" />
+          <Volume2 size={10} color="var(--text-subtle)" />
           <input type="range" min="0" max="100"
             value={Math.round(ambientVol * 100)}
             onChange={e => handleVolumeChange(Number(e.target.value))}
@@ -1021,7 +1021,7 @@ export default function ActiveScreen({
               ? `rgba(${hexToRgb(cc.dot)},0.13)`
               : 'rgba(200,169,110,0.09)',
             border: `2px solid ${isRunning ? cc.dot : 'rgba(200,169,110,0.4)'}`,
-            cursor: 'pointer', color: '#EDE5DA',
+            cursor: 'pointer', color: 'var(--text-primary)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             transition: 'all 0.28s ease',
             boxShadow: isRunning
@@ -1047,7 +1047,7 @@ export default function ActiveScreen({
           padding: '8px 1.4rem',
           background: 'linear-gradient(to top, rgba(10,8,6,0.97) 0%, rgba(10,8,6,0.8) 100%)',
           fontFamily: "'Raleway', sans-serif",
-          fontSize: '10.5px', color: '#6B5E50',
+          fontSize: '10.5px', color: 'var(--text-muted)',
           fontStyle: 'italic', letterSpacing: '0.03em',
           textAlign: 'center', lineHeight: 1.55,
           borderTop: '1px solid rgba(200,169,110,0.06)',

@@ -123,10 +123,10 @@ export default function HomeScreen({ onSelectSession, onResume, todayStatus, str
       {/* Top bar */}
       <div style={{ position: 'relative', zIndex: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.9rem 1.4rem 0', animation: 'fadeIn 0.5s ease both' }}>
         <div>
-          <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: '10px', color: '#C8A96E', letterSpacing: '0.08em', opacity: 0.7 }}>
+          <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: '10px', color: 'var(--gold-accent)', letterSpacing: '0.08em', opacity: 0.78 }}>
             Sadhaka
           </div>
-          <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: '8px', color: '#3A3028', letterSpacing: '0.1em', marginTop: 1 }}>
+          <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: '8px', color: 'var(--text-subtle)', letterSpacing: '0.1em', marginTop: 1 }}>
             {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
           </div>
         </div>
@@ -138,14 +138,14 @@ export default function HomeScreen({ onSelectSession, onResume, todayStatus, str
             }}
             style={{
               ...topBtnStyle,
-              color: showSettingsModal ? '#C8A96E' : '#4A4038',
-              borderColor: showSettingsModal ? 'rgba(200,169,110,0.3)' : 'rgba(200,169,110,0.08)',
+              color: showSettingsModal ? 'var(--gold-accent)' : 'var(--text-subtle)',
+              borderColor: showSettingsModal ? 'var(--card-border)' : 'var(--border-soft)',
             }}
             title="Personal settings"
           >
             <SlidersHorizontal size={13} />
           </button>
-          <button onClick={() => setShowTracker(s => !s)} style={{ ...topBtnStyle, color: showTracker ? '#C8A96E' : '#4A4038', borderColor: showTracker ? 'rgba(200,169,110,0.3)' : 'rgba(200,169,110,0.08)' }} title="Practice tracker">
+          <button onClick={() => setShowTracker(s => !s)} style={{ ...topBtnStyle, color: showTracker ? 'var(--gold-accent)' : 'var(--text-subtle)', borderColor: showTracker ? 'var(--card-border)' : 'var(--border-soft)' }} title="Practice tracker">
             <Calendar size={13} />
           </button>
           {onAdmin && (
@@ -162,11 +162,11 @@ export default function HomeScreen({ onSelectSession, onResume, todayStatus, str
 
           {/* Title */}
           <div style={{ textAlign: 'center', marginBottom: '1.8rem', ...anim(0) }}>
-            <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '2rem', color: '#C8A96E', lineHeight: 1, marginBottom: '0.6rem', textShadow: '0 0 40px rgba(200,169,110,0.5)', animation: 'glow-pulse 4s ease-in-out infinite' }}>ॐ</div>
-            <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 'clamp(2.2rem, 8vw, 3rem)', fontWeight: 300, color: '#EDE5DA', lineHeight: 1.05, letterSpacing: '-0.01em', margin: 0 }}>
-              <em style={{ color: '#C8A96E', fontStyle: 'italic' }}>Kundalini</em> Sadhana
+            <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '2rem', color: 'var(--gold-accent)', lineHeight: 1, marginBottom: '0.6rem', textShadow: '0 0 30px var(--glow-soft)', animation: 'glow-pulse 4s ease-in-out infinite' }}>ॐ</div>
+            <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 'clamp(2.2rem, 8vw, 3rem)', fontWeight: 300, color: 'var(--text-primary)', lineHeight: 1.05, letterSpacing: '-0.01em', margin: 0 }}>
+              <em style={{ color: 'var(--gold-accent)', fontStyle: 'italic' }}>Kundalini</em> Sadhana
             </h1>
-            <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: '9px', color: '#4A4038', letterSpacing: '0.3em', textTransform: 'uppercase', marginTop: '0.5rem' }}>
+            <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: '9px', color: 'var(--text-subtle)', letterSpacing: '0.3em', textTransform: 'uppercase', marginTop: '0.5rem' }}>
               Daily Practice
             </div>
           </div>
@@ -200,9 +200,9 @@ export default function HomeScreen({ onSelectSession, onResume, todayStatus, str
           )}
 
           {!installPromptEvent && showIosInstallHint && (
-            <div style={{ ...anim(35), marginBottom: '0.9rem', padding: '8px 10px', borderRadius: 10, border: '1px solid rgba(200,169,110,0.12)', background: 'rgba(255,255,255,0.015)', display: 'flex', alignItems: 'center', gap: 7 }}>
-              <Share2 size={11} color="#8A7A6A" />
-              <span style={{ fontFamily: "'Raleway', sans-serif", fontSize: '9px', color: '#8A7A6A', letterSpacing: '0.06em' }}>
+            <div style={{ ...anim(35), marginBottom: '0.9rem', padding: '8px 10px', borderRadius: 10, border: '1px solid var(--border-soft)', background: 'var(--card-bg-soft)', display: 'flex', alignItems: 'center', gap: 7 }}>
+              <Share2 size={11} color="var(--text-muted)" />
+              <span style={{ fontFamily: "'Raleway', sans-serif", fontSize: '9px', color: 'var(--text-muted)', letterSpacing: '0.06em' }}>
                 Use Share → Add to Home Screen.
               </span>
             </div>
@@ -225,16 +225,16 @@ export default function HomeScreen({ onSelectSession, onResume, todayStatus, str
               onClick={() => setShowTracker(s => !s)}
               style={{
                 width: '100%', padding: '10px 14px',
-                background: showTracker ? 'rgba(200,169,110,0.06)' : 'rgba(255,255,255,0.02)',
-                border: `1px solid ${showTracker ? 'rgba(200,169,110,0.2)' : 'rgba(200,169,110,0.07)'}`,
+                background: showTracker ? 'var(--card-bg-soft)' : 'var(--card-bg-soft)',
+                border: `1px solid ${showTracker ? 'var(--card-border)' : 'var(--border-soft)'}`,
                 borderRadius: showTracker ? '14px 14px 0 0' : 14,
                 cursor: 'pointer',
                 display: 'flex', alignItems: 'center', gap: 8,
                 transition: 'all 0.25s',
               }}
             >
-              <Calendar size={12} color={showTracker ? '#C8A96E' : '#4A4038'} />
-              <span style={{ fontFamily: "'Raleway', sans-serif", fontSize: '9px', letterSpacing: '0.22em', textTransform: 'uppercase', color: showTracker ? '#C8A96E' : '#4A4038', flex: 1, textAlign: 'left' }}>
+              <Calendar size={12} color={showTracker ? 'var(--gold-accent)' : 'var(--text-subtle)'} />
+              <span style={{ fontFamily: "'Raleway', sans-serif", fontSize: '9px', letterSpacing: '0.22em', textTransform: 'uppercase', color: showTracker ? 'var(--gold-accent)' : 'var(--text-subtle)', flex: 1, textAlign: 'left' }}>
                 28-Day Practice Tracker
               </span>
               <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ transform: showTracker ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', color: '#4A4038' }}>
@@ -243,8 +243,8 @@ export default function HomeScreen({ onSelectSession, onResume, todayStatus, str
             </button>
             {showTracker && (
               <div style={{
-                background: 'rgba(255,255,255,0.015)',
-                border: '1px solid rgba(200,169,110,0.07)',
+                background: 'var(--card-bg-soft)',
+                border: '1px solid var(--border-soft)',
                 borderTop: 'none',
                 borderRadius: '0 0 14px 14px',
                 padding: '1rem',
@@ -260,17 +260,17 @@ export default function HomeScreen({ onSelectSession, onResume, todayStatus, str
             <div style={{ ...anim(120), marginBottom: '0.85rem' }}>
               <button onClick={onResume} style={{
                 width: '100%', padding: '11px 14px', borderRadius: 12,
-                border: '1px solid rgba(200,169,110,0.25)', background: 'rgba(200,169,110,0.06)',
+                border: '1px solid var(--card-border)', background: 'var(--card-bg-soft)',
                 cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10, textAlign: 'left',
               }}>
-                <RotateCcw size={14} color="#C8A96E" strokeWidth={1.8} />
+                <RotateCcw size={14} color="var(--gold-accent)" strokeWidth={1.8} />
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: '9px', color: '#C8A96E', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 1 }}>Resume</div>
-                  <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '0.95rem', color: '#A89880' }}>
+                  <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: '9px', color: 'var(--gold-accent)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 1 }}>Resume</div>
+                  <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '0.95rem', color: 'var(--text-muted)' }}>
                     {resumeSession.label} · Practice {saved!.practiceIndex + 1} of {resumeSession.practices.length}
                   </div>
                 </div>
-                <span style={{ color: 'rgba(200,169,110,0.4)', fontSize: 20 }}>›</span>
+                <span style={{ color: 'var(--text-subtle)', fontSize: 20 }}>›</span>
               </button>
             </div>
           )}
@@ -308,7 +308,7 @@ export default function HomeScreen({ onSelectSession, onResume, todayStatus, str
             </div>
           )}
 
-          <div style={{ textAlign: 'center', marginTop: '1.4rem', fontFamily: "'Raleway', sans-serif", fontSize: '8px', color: 'rgba(107,94,80,0.35)', letterSpacing: '0.2em', textTransform: 'uppercase', ...anim(350) }}>
+          <div style={{ textAlign: 'center', marginTop: '1.4rem', fontFamily: "'Raleway', sans-serif", fontSize: '8px', color: 'var(--text-subtle)', letterSpacing: '0.2em', textTransform: 'uppercase', ...anim(350) }}>
             Swami Satyananda Saraswati
           </div>
         </div>
@@ -317,13 +317,13 @@ export default function HomeScreen({ onSelectSession, onResume, todayStatus, str
       {/* Cancel confirm dialog */}
       {cancelConfirm && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 50, background: 'rgba(5,4,3,0.88)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem', animation: 'fadeIn 0.2s ease both' }}>
-          <div style={{ width: '100%', maxWidth: 320, background: '#0E0B08', border: '1px solid rgba(200,169,110,0.14)', borderRadius: 20, padding: '1.7rem', animation: 'scaleIn 0.22s ease both' }}>
-            <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.4rem', color: '#EDE5DA', marginBottom: 8 }}>Cancel Session?</div>
-            <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: '11px', color: '#6B5E50', lineHeight: 1.7, marginBottom: 20 }}>
-              Today's <strong style={{ color: '#A89880' }}>{cancelConfirm}</strong> session will be marked cancelled. You can restart it any time today.
+          <div style={{ width: '100%', maxWidth: 320, background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: 20, padding: '1.7rem', animation: 'scaleIn 0.22s ease both', boxShadow: 'var(--shadow-soft)' }}>
+            <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.4rem', color: 'var(--text-primary)', marginBottom: 8 }}>Cancel Session?</div>
+            <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: '11px', color: 'var(--text-muted)', lineHeight: 1.7, marginBottom: 20 }}>
+              Today's <strong style={{ color: 'var(--text-primary)' }}>{cancelConfirm}</strong> session will be marked cancelled. You can restart it any time today.
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
-              <button onClick={() => setCancelConfirm(null)} style={{ flex: 1, padding: '12px', borderRadius: 10, border: '1px solid rgba(200,169,110,0.1)', background: 'transparent', cursor: 'pointer', fontFamily: "'Raleway', sans-serif", fontSize: '10px', letterSpacing: '0.15em', textTransform: 'uppercase', color: '#5A5040' }}>Keep</button>
+              <button onClick={() => setCancelConfirm(null)} style={{ flex: 1, padding: '12px', borderRadius: 10, border: '1px solid var(--border-soft)', background: 'transparent', cursor: 'pointer', fontFamily: "'Raleway', sans-serif", fontSize: '10px', letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>Keep</button>
               <button onClick={() => { onCancelSession(cancelConfirm); setCancelConfirm(null); }} style={{ flex: 1, padding: '12px', borderRadius: 10, border: '1px solid rgba(220,80,80,0.25)', background: 'rgba(220,80,80,0.08)', cursor: 'pointer', fontFamily: "'Raleway', sans-serif", fontSize: '10px', letterSpacing: '0.15em', textTransform: 'uppercase', color: '#E07070' }}>Cancel It</button>
             </div>
           </div>
@@ -338,7 +338,7 @@ export default function HomeScreen({ onSelectSession, onResume, todayStatus, str
                 <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: '8px', color: '#C8A96E', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 3 }}>Personal</div>
                 <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.45rem', color: 'var(--surface-text)' }}>Settings</div>
               </div>
-              <button onClick={() => setShowSettingsModal(false)} style={{ width: 30, height: 30, borderRadius: 9, border: '1px solid rgba(200,169,110,0.12)', background: 'rgba(255,255,255,0.02)', color: '#6B5E50', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <button onClick={() => setShowSettingsModal(false)} style={{ width: 30, height: 30, borderRadius: 9, border: '1px solid var(--border-soft)', background: 'var(--card-bg-soft)', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <X size={14} />
               </button>
             </div>
@@ -440,14 +440,14 @@ function TodayStatusBar({
         {items.map(item => (
           <div key={item.label} style={{
             flex: 1, padding: '10px 12px', borderRadius: 12,
-            background: item.done ? `${item.color}10` : item.cancelled ? 'rgba(220,80,80,0.06)' : 'rgba(255,255,255,0.02)',
-            border: `1px solid ${item.done ? item.color + '35' : item.cancelled ? 'rgba(220,80,80,0.18)' : 'rgba(255,255,255,0.05)'}`,
+            background: item.done ? `${item.color}10` : item.cancelled ? 'rgba(220,80,80,0.06)' : 'var(--card-bg-soft)',
+            border: `1px solid ${item.done ? item.color + '35' : item.cancelled ? 'rgba(220,80,80,0.18)' : 'var(--border-soft)'}`,
             display: 'flex', alignItems: 'center', gap: 8,
           }}>
-            <span style={{ color: item.done ? item.color : item.cancelled ? '#E07070' : '#3A3028' }}>{item.icon}</span>
+            <span style={{ color: item.done ? item.color : item.cancelled ? '#E07070' : 'var(--text-subtle)' }}>{item.icon}</span>
             <div style={{ flex: 1 }}>
-              <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: '8px', letterSpacing: '0.15em', textTransform: 'uppercase', color: item.done ? item.color : item.cancelled ? '#E07070' : '#3A3028', marginBottom: 1 }}>{item.label}</div>
-              <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: '9px', color: item.done ? '#8A7A6A' : item.cancelled ? '#5A3A3A' : '#2A2820' }}>
+              <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: '8px', letterSpacing: '0.15em', textTransform: 'uppercase', color: item.done ? item.color : item.cancelled ? '#E07070' : 'var(--text-subtle)', marginBottom: 1 }}>{item.label}</div>
+              <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: '9px', color: item.done ? 'var(--text-muted)' : item.cancelled ? '#5A3A3A' : 'var(--text-subtle)' }}>
                 {item.done ? 'Complete' : item.cancelled ? 'Cancelled' : 'Pending'}
               </div>
             </div>
@@ -461,8 +461,8 @@ function TodayStatusBar({
         gap: 8,
         padding: '8px 10px',
         borderRadius: 12,
-        border: '1px solid rgba(200,169,110,0.1)',
-        background: 'rgba(255,255,255,0.02)',
+        border: '1px solid var(--border-soft)',
+        background: 'var(--card-bg-soft)',
       }}>
         <StreakPill label="Morning" value={streaks.morning} color="#D4892A" />
         <StreakPill label="Night" value={streaks.night} color="#6B7FBF" />
@@ -505,9 +505,9 @@ function SessionCard({ onClick, icon, accentColor, title, subtitle, status, onCa
         disabled={isDone}
         style={{
           width: '100%', display: 'flex', alignItems: 'center', gap: 14, padding: '1rem 1.1rem 1rem 1.3rem',
-          border: `1px solid ${isDone ? accentColor + '40' : isCancelled ? 'rgba(220,80,80,0.2)' : hovered ? accentColor + '55' : 'rgba(200,169,110,0.1)'}`,
+          border: `1px solid ${isDone ? accentColor + '40' : isCancelled ? 'rgba(220,80,80,0.2)' : hovered ? accentColor + '55' : 'var(--border-soft)'}`,
           borderRadius: 16,
-          background: isDone ? `${accentColor}08` : isCancelled ? 'rgba(220,80,80,0.04)' : hovered ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.015)',
+          background: isDone ? `${accentColor}08` : isCancelled ? 'rgba(220,80,80,0.04)' : hovered ? 'var(--card-bg-soft)' : 'var(--card-bg-soft)',
           cursor: isDone ? 'default' : 'pointer', textAlign: 'left', transition: 'all 0.22s ease',
           position: 'relative', overflow: 'hidden',
         }}
@@ -526,18 +526,18 @@ function SessionCard({ onClick, icon, accentColor, title, subtitle, status, onCa
         </div>
 
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.15rem', color: isDone ? accentColor : isCancelled ? '#8A6A6A' : hovered ? '#F0E8DF' : '#DDD5C8', marginBottom: 3, display: 'flex', alignItems: 'center', gap: 7 }}>
+          <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.15rem', color: isDone ? accentColor : isCancelled ? '#8A6A6A' : hovered ? 'var(--text-primary)' : 'var(--text-primary)', marginBottom: 3, display: 'flex', alignItems: 'center', gap: 7 }}>
             {title}
             {isDone && <span style={{ fontFamily: "'Raleway', sans-serif", fontSize: '7.5px', letterSpacing: '0.2em', textTransform: 'uppercase', color: accentColor, opacity: 0.75, background: `${accentColor}14`, padding: '2px 6px', borderRadius: 5 }}>Done</span>}
             {isCancelled && <span style={{ fontFamily: "'Raleway', sans-serif", fontSize: '7.5px', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#E07070', background: 'rgba(220,80,80,0.1)', padding: '2px 6px', borderRadius: 5 }}>Cancelled</span>}
           </div>
-          <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: '10px', color: isCancelled ? '#5A4040' : '#4A4038', letterSpacing: '0.05em', fontWeight: 300 }}>
+          <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: '10px', color: isCancelled ? '#5A4040' : 'var(--text-subtle)', letterSpacing: '0.05em', fontWeight: 300 }}>
             {isCancelled ? 'Tap to restart for today' : subtitle}
           </div>
         </div>
 
         {!isDone && (
-          <span style={{ color: isCancelled ? '#5A4040' : hovered ? accentColor : 'rgba(200,169,110,0.2)', fontSize: 20, transition: 'all 0.2s', transform: hovered && !isCancelled ? 'translateX(3px)' : 'none', display: 'inline-block', flexShrink: 0 }}>
+          <span style={{ color: isCancelled ? '#5A4040' : hovered ? accentColor : 'var(--text-subtle)', fontSize: 20, transition: 'all 0.2s', transform: hovered && !isCancelled ? 'translateX(3px)' : 'none', display: 'inline-block', flexShrink: 0 }}>
             {isCancelled ? <RefreshCw size={15} color="#5A4040" /> : '›'}
           </span>
         )}

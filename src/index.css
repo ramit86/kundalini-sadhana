@@ -5,11 +5,23 @@
 @tailwind utilities;
 
 :root,
-:root[data-theme='dark'] {
+:root[data-theme='dark'],
+:root.theme-dark {
   color-scheme: dark;
   --app-bg: #0f0d0a;
   --app-text: #e8ddd0;
   --home-bg-gradient: linear-gradient(160deg, #0a0806 0%, #100d09 60%, #0d0a07 100%);
+  --card-bg: #0e0b08;
+  --card-bg-soft: rgba(255, 255, 255, 0.02);
+  --card-bg-alt: linear-gradient(180deg, rgba(18, 14, 10, 0.92) 0%, rgba(12, 10, 8, 0.82) 100%);
+  --card-border: rgba(200, 169, 110, 0.14);
+  --text-primary: #ede5da;
+  --text-muted: #8a7a6a;
+  --text-subtle: #4a4038;
+  --gold-accent: #c8a96e;
+  --border-soft: rgba(200, 169, 110, 0.1);
+  --glow-soft: rgba(200, 169, 110, 0.12);
+  --shadow-soft: 0 14px 32px rgba(0, 0, 0, 0.34);
   --surface-bg: #0e0b08;
   --surface-border: rgba(200, 169, 110, 0.16);
   --surface-text: #ede5da;
@@ -21,11 +33,23 @@
   --select-option-text: #c8b89a;
 }
 
-:root[data-theme='light'] {
+:root[data-theme='light'],
+:root.theme-light {
   color-scheme: light;
   --app-bg: #f1e8d9;
   --app-text: #4b3b2e;
   --home-bg-gradient: linear-gradient(165deg, #f5ecdd 0%, #ecdfcb 56%, #e4d2ba 100%);
+  --card-bg: #f6ecda;
+  --card-bg-soft: rgba(249, 240, 225, 0.78);
+  --card-bg-alt: linear-gradient(180deg, rgba(247, 237, 219, 0.96) 0%, rgba(240, 226, 204, 0.92) 100%);
+  --card-border: rgba(161, 126, 70, 0.24);
+  --text-primary: #53402f;
+  --text-muted: #7b6652;
+  --text-subtle: #90775b;
+  --gold-accent: #a88449;
+  --border-soft: rgba(161, 126, 70, 0.2);
+  --glow-soft: rgba(168, 132, 72, 0.14);
+  --shadow-soft: 0 12px 26px rgba(121, 92, 52, 0.12);
   --surface-bg: #f7efdf;
   --surface-border: rgba(161, 126, 70, 0.24);
   --surface-text: #53402f;

@@ -28,7 +28,7 @@ export default function DailyTracker() {
             textAlign: 'center',
             fontFamily: "'Raleway', sans-serif",
             fontSize: '7.5px', letterSpacing: '0.1em',
-            color: '#3A3028', paddingBottom: 2,
+            color: 'var(--text-subtle)', paddingBottom: 2,
           }}>{d}</div>
         ))}
 
@@ -49,8 +49,8 @@ export default function DailyTracker() {
             <div key={date} style={{
               aspectRatio: '1',
               borderRadius: 6,
-              border: isToday ? '1px solid rgba(200,169,110,0.3)' : '1px solid rgba(255,255,255,0.03)',
-              background: (mDone && nDone) ? 'rgba(200,169,110,0.12)' : 'rgba(255,255,255,0.02)',
+              border: isToday ? '1px solid var(--card-border)' : '1px solid var(--border-soft)',
+              background: (mDone && nDone) ? 'var(--card-bg-soft)' : 'var(--card-bg-soft)',
               display: 'flex', flexDirection: 'column',
               alignItems: 'center', justifyContent: 'center',
               gap: 1.5, padding: 2,
@@ -59,7 +59,7 @@ export default function DailyTracker() {
               {/* Day number */}
               <span style={{
                 fontFamily: "'Raleway', sans-serif",
-                fontSize: '7px', color: isToday ? '#C8A96E' : '#3A3028',
+                fontSize: '7px', color: isToday ? 'var(--gold-accent)' : 'var(--text-subtle)',
                 lineHeight: 1, letterSpacing: '0.04em',
               }}>
                 {new Date(date + 'T00:00:00').getDate()}
@@ -79,8 +79,8 @@ export default function DailyTracker() {
         <LegendItem color="#D4892A" label="Morning" />
         <LegendItem color="#6B7FBF" label="Night" />
         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(200,169,110,0.1)' }} />
-          <span style={{ fontFamily: "'Raleway', sans-serif", fontSize: '8px', color: '#3A3028' }}>Missed</span>
+          <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--card-bg-soft)', border: '1px solid var(--border-soft)' }} />
+          <span style={{ fontFamily: "'Raleway', sans-serif", fontSize: '8px', color: 'var(--text-subtle)' }}>Missed</span>
         </div>
       </div>
     </div>
@@ -121,16 +121,16 @@ function StreakBadge({ icon, label, streak, color }: { icon: React.ReactNode; la
     <div style={{
       flex: 1, display: 'flex', alignItems: 'center', gap: 8,
       padding: '7px 10px', borderRadius: 10,
-      background: streak > 0 ? `${color}10` : 'rgba(255,255,255,0.02)',
-      border: `1px solid ${streak > 0 ? color + '28' : 'rgba(255,255,255,0.04)'}`,
+      background: streak > 0 ? `${color}10` : 'var(--card-bg-soft)',
+      border: `1px solid ${streak > 0 ? color + '28' : 'var(--border-soft)'}`,
     }}>
-      <span style={{ color: streak > 0 ? color : '#3A3028' }}>{icon}</span>
+      <span style={{ color: streak > 0 ? color : 'var(--text-subtle)' }}>{icon}</span>
       <div style={{ flex: 1 }}>
-        <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: '8px', color: '#3A3028', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+        <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: '8px', color: 'var(--text-subtle)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
           {label}
         </div>
-        <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.15rem', color: streak > 0 ? color : '#3A3028', lineHeight: 1 }}>
-          {streak} <span style={{ fontSize: '0.65rem', color: '#4A4038' }}>day streak</span>
+        <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.15rem', color: streak > 0 ? color : 'var(--text-primary)', lineHeight: 1 }}>
+          {streak} <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>day streak</span>
         </div>
       </div>
       {streak > 0 && (
@@ -144,7 +144,7 @@ function LegendItem({ color, label }: { color: string; label: string }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
       <div style={{ width: 6, height: 6, borderRadius: '50%', background: color, boxShadow: `0 0 4px ${color}66` }} />
-      <span style={{ fontFamily: "'Raleway', sans-serif", fontSize: '8px', color: '#3A3028' }}>{label}</span>
+      <span style={{ fontFamily: "'Raleway', sans-serif", fontSize: '8px', color: 'var(--text-subtle)' }}>{label}</span>
     </div>
   );
 }

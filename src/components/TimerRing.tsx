@@ -155,7 +155,7 @@ export default function TimerRing({ timeRemaining, totalDuration, chakra, isRunn
         <circle
           cx={cx} cy={cx} r={outerR}
           fill="none"
-          stroke="rgba(200,169,110,0.06)"
+          stroke="var(--border-soft)"
           strokeWidth={6.5}
         />
 
@@ -176,7 +176,7 @@ export default function TimerRing({ timeRemaining, totalDuration, chakra, isRunn
         <circle
           cx={cx} cy={cx} r={innerR}
           fill="none"
-          stroke="rgba(200,169,110,0.04)"
+          stroke="var(--border-soft)"
           strokeWidth={1}
           strokeDasharray={`${innerCirc * 0.015} ${innerCirc * 0.985 / (tickCount / 4 - 1)}`}
         />
@@ -230,7 +230,7 @@ export default function TimerRing({ timeRemaining, totalDuration, chakra, isRunn
           fontFamily: "'Cormorant Garamond', serif",
           fontSize: '3.1rem',
           fontWeight: 300,
-          color: '#EDE5DA',
+          color: 'var(--text-primary)',
           letterSpacing: '0.02em',
           lineHeight: 1,
           textShadow: isRunning ? `0 0 30px ${cc.dot}44` : 'none',
@@ -243,7 +243,7 @@ export default function TimerRing({ timeRemaining, totalDuration, chakra, isRunn
           fontSize: '8.5px',
           letterSpacing: '0.32em',
           textTransform: 'uppercase',
-          color: '#4A4038',
+          color: 'var(--text-subtle)',
           marginTop: 7,
           fontWeight: 300,
         }}>
@@ -254,7 +254,7 @@ export default function TimerRing({ timeRemaining, totalDuration, chakra, isRunn
         <div style={{
           marginTop: 10,
           width: 38, height: 3, borderRadius: 2,
-          background: 'rgba(200,169,110,0.08)',
+          background: 'var(--border-soft)',
           overflow: 'hidden',
         }}>
           <div style={{

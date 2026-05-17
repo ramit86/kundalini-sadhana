@@ -33,6 +33,12 @@ function resolveTheme(themeMode: ThemeMode, prefersDark: boolean): ResolvedTheme
 
 function applyTheme(mode: ResolvedTheme) {
   if (typeof document === 'undefined') return;
+  const root = document.documentElement;
+  const body = document.body;
+  root.classList.remove('theme-dark', 'theme-light');
+  body.classList.remove('theme-dark', 'theme-light');
+  root.classList.add(mode === 'dark' ? 'theme-dark' : 'theme-light');
+  body.classList.add(mode === 'dark' ? 'theme-dark' : 'theme-light');
   document.documentElement.setAttribute('data-theme', mode);
 }
 
