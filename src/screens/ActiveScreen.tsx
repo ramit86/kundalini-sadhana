@@ -710,7 +710,7 @@ export default function ActiveScreen({
       {/* Main body */}
       <div style={{
         flex: 1, display: 'flex', flexDirection: 'column',
-        padding: isMobile ? '0 0.55rem 0.25rem' : '0 1.2rem 0.25rem',
+        padding: isMobile ? '0.1rem 0.62rem 0.38rem' : '0.35rem 1.25rem 0.55rem',
         overflow: 'hidden', position: 'relative', zIndex: 2,
         minHeight: 0,
         width: '100%',
@@ -724,18 +724,18 @@ export default function ActiveScreen({
           flex: 1,
           display: 'grid',
           gridTemplateColumns: showDesktopPlaceholder ? 'minmax(0,760px) minmax(220px,1fr)' : 'minmax(0,760px)',
-          gap: showDesktopPlaceholder ? 16 : 0,
+          gap: showDesktopPlaceholder ? 18 : 0,
           alignItems: 'stretch',
         }}>
           <div style={{
             minHeight: 0,
             display: 'flex',
             flexDirection: 'column',
-            borderRadius: 18,
+            borderRadius: 20,
             background: 'var(--card-bg-alt)',
-            border: '1px solid var(--card-border)',
-            boxShadow: 'var(--shadow-soft), inset 0 1px 0 var(--button-ghost-bg)',
-            padding: isMobile ? '0.6rem' : '0.9rem 1rem',
+            border: '1px solid var(--border-soft)',
+            boxShadow: 'var(--shadow-soft)',
+            padding: isMobile ? '0.72rem' : '1rem 1.08rem',
             overflow: 'hidden',
             backdropFilter: 'blur(5px)',
             width: '100%',
@@ -745,11 +745,11 @@ export default function ActiveScreen({
               key={`chakra-${practiceIndex}`}
               style={{
                 flexShrink: 0,
-                margin: '0 0 0.35rem',
-                padding: '0.6rem 0.9rem',
+                margin: '0 0 0.65rem',
+                padding: '0.62rem 0.9rem',
                 borderRadius: 14,
                 background: `linear-gradient(135deg, ${cc.dot}12 0%, ${cc.dot}06 100%)`,
-                border: `1px solid ${cc.dot}28`,
+                border: `1px solid ${cc.dot}1f`,
                 display: 'flex', alignItems: 'center', gap: 10,
                 position: 'relative', overflow: 'hidden',
                 transition: 'all 0.9s ease',
@@ -760,7 +760,7 @@ export default function ActiveScreen({
               <div style={{
                 position: 'absolute', right: -20, top: -20, width: 90, height: 90,
                 borderRadius: '50%',
-                background: `radial-gradient(ellipse, ${cc.dot}30 0%, transparent 70%)`,
+                background: `radial-gradient(ellipse, ${cc.dot}24 0%, transparent 72%)`,
                 filter: 'blur(18px)', pointerEvents: 'none',
                 animation: isRunning ? 'breathe-active 5s ease-in-out infinite' : 'none',
               }} />
@@ -812,14 +812,14 @@ export default function ActiveScreen({
             </div>
 
             {!showDesktopPlaceholder && (
-              <div style={{ display: 'flex', justifyContent: 'center', margin: '0.15rem 0 0.35rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'center', margin: '0.2rem 0 0.55rem' }}>
                 <div style={{
                   width: '100%',
                   maxWidth: 180,
                   borderRadius: 16,
-                  border: '1px solid var(--border-soft)',
+                  border: '1px solid color-mix(in srgb, var(--border-soft) 70%, transparent)',
                   background: 'var(--card-bg-soft)',
-                  padding: '0.35rem',
+                  padding: '0.4rem',
                 }}>
                   <ChakraBodyMap activeChakra={practice?.chakra ?? 'Preparation'} compact pulse={practiceTransition} />
                 </div>
@@ -831,7 +831,7 @@ export default function ActiveScreen({
               display: 'flex',
               justifyContent: 'center',
               flexShrink: 0,
-              margin: '0.1rem 0 0.25rem',
+              margin: '0.15rem 0 0.5rem',
               position: 'relative',
               minHeight: isMobile ? 214 : 242,
             }}>
@@ -843,7 +843,7 @@ export default function ActiveScreen({
                 background: `radial-gradient(ellipse at 50% 45%, ${cc.dot}24 0%, ${cc.dot}12 34%, transparent 72%)`,
                 filter: 'blur(28px)',
                 animation: 'breathe-slow 10s ease-in-out infinite',
-                opacity: 0.38,
+                opacity: 0.26,
                 pointerEvents: 'none',
               }} />
               <div style={{
@@ -851,9 +851,9 @@ export default function ActiveScreen({
                 width: 248,
                 height: 248,
                 borderRadius: '50%',
-                border: `1px solid ${cc.dot}26`,
-                boxShadow: bellFlash ? `0 0 36px ${cc.dot}88` : `0 0 20px ${cc.dot}33`,
-                opacity: practiceTransition ? 0.85 : 0.45,
+                border: `1px solid ${cc.dot}18`,
+                boxShadow: bellFlash ? `0 0 26px ${cc.dot}66` : `0 0 12px ${cc.dot}22`,
+                opacity: practiceTransition ? 0.78 : 0.3,
                 transform: practiceTransition ? 'scale(1.06)' : 'scale(1)',
                 transition: 'all 0.7s ease',
                 pointerEvents: 'none',
@@ -876,9 +876,9 @@ export default function ActiveScreen({
                   minHeight: 0,
                   width: '100%',
                   borderRadius: 14,
-                  border: '1px solid var(--border-soft)',
+                  border: '1px solid color-mix(in srgb, var(--border-soft) 70%, transparent)',
                   background: 'var(--card-bg-soft)',
-                  padding: isMobile ? '0.58rem' : '0.8rem',
+                  padding: isMobile ? '0.66rem' : '0.9rem',
                   animation: 'fadeUp 0.5s 0.1s ease both',
                   overflow: 'hidden',
                 }}
@@ -889,9 +889,9 @@ export default function ActiveScreen({
 
                 {chakraMeta && (
                   <div style={{
-                    marginTop: 8,
+                    marginTop: 10,
                     borderRadius: 12,
-                    border: '1px solid var(--border-soft)',
+                    border: '1px solid color-mix(in srgb, var(--border-soft) 65%, transparent)',
                     background: 'var(--card-bg-soft)',
                     overflow: 'hidden',
                   }}>
@@ -906,7 +906,7 @@ export default function ActiveScreen({
                         display: 'flex',
                         alignItems: 'center',
                         gap: 8,
-                        padding: '9px 10px',
+                        padding: '10px 10px',
                         cursor: 'pointer',
                         fontFamily: "'Raleway', sans-serif",
                         fontSize: '9px',
@@ -920,8 +920,8 @@ export default function ActiveScreen({
                       {chakraPanelOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                     </button>
                     {chakraPanelOpen && (
-                      <div style={{ padding: '0.72rem 0.75rem 0.78rem', animation: 'fadeIn 0.25s ease both' }}>
-                        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
+                      <div style={{ padding: '0.82rem 0.82rem 0.86rem', animation: 'fadeIn 0.25s ease both' }}>
+                        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
                           <InfoChip label="Chakra" value={chakraMeta.displayName} color={cc.dot} />
                           <InfoChip label="Location" value={chakraMeta.bodyLocation} color={cc.dot} />
                           <InfoChip label="Element" value={chakraMeta.element} color={cc.dot} />
@@ -950,8 +950,8 @@ export default function ActiveScreen({
 
           {showDesktopPlaceholder && (
             <div style={{
-              borderRadius: 18,
-              border: '1px solid var(--border-soft)',
+              borderRadius: 20,
+              border: '1px solid color-mix(in srgb, var(--border-soft) 70%, transparent)',
               background: 'var(--card-bg-soft)',
               position: 'relative',
               overflow: 'hidden',
@@ -959,7 +959,7 @@ export default function ActiveScreen({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              padding: '1rem',
+              padding: '1.1rem',
             }}>
               <div style={{ width: '100%', height: '100%', display: 'grid', gridTemplateRows: '1fr auto', gap: 10 }}>
                 <ChakraBodyMap activeChakra={practice?.chakra ?? 'Preparation'} pulse={practiceTransition} />

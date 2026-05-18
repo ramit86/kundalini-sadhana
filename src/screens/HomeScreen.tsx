@@ -121,7 +121,7 @@ export default function HomeScreen({ onSelectSession, onResume, todayStatus, str
       <div style={{ position: 'absolute', width: 500, height: 500, borderRadius: '50%', background: 'radial-gradient(ellipse, rgba(200,169,110,0.05) 0%, transparent 65%)', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', animation: 'breathe-slow 11s ease-in-out infinite', pointerEvents: 'none', zIndex: 0 }} />
 
       {/* Top bar */}
-      <div style={{ position: 'relative', zIndex: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.9rem 1.4rem 0', animation: 'fadeIn 0.5s ease both' }}>
+      <div style={{ position: 'relative', zIndex: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1.15rem 1.5rem 0.25rem', animation: 'fadeIn 0.5s ease both' }}>
         <div>
           <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: '10px', color: 'var(--gold-accent)', letterSpacing: '0.08em', opacity: 0.78 }}>
             Sadhaka
@@ -158,10 +158,10 @@ export default function HomeScreen({ onSelectSession, onResume, todayStatus, str
 
       {/* Scrollable content */}
       <div style={{ flex: 1, overflowY: 'auto', position: 'relative', zIndex: 1 }}>
-        <div style={{ maxWidth: 420, margin: '0 auto', padding: '1.2rem 1.5rem 2.5rem' }}>
+        <div style={{ maxWidth: 456, margin: '0 auto', padding: '1.5rem 1.5rem 3.1rem' }}>
 
           {/* Title */}
-          <div style={{ textAlign: 'center', marginBottom: '1.8rem', ...anim(0) }}>
+          <div style={{ textAlign: 'center', marginBottom: '2.35rem', ...anim(0) }}>
             <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '2rem', color: 'var(--gold-accent)', lineHeight: 1, marginBottom: '0.6rem', textShadow: '0 0 30px var(--glow-soft)', animation: 'glow-pulse 4s ease-in-out infinite' }}>ॐ</div>
             <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 'clamp(2.2rem, 8vw, 3rem)', fontWeight: 300, color: 'var(--text-primary)', lineHeight: 1.05, letterSpacing: '-0.01em', margin: 0 }}>
               <em style={{ color: 'var(--gold-accent)', fontStyle: 'italic' }}>Kundalini</em> Sadhana
@@ -172,7 +172,7 @@ export default function HomeScreen({ onSelectSession, onResume, todayStatus, str
           </div>
 
           {installPromptEvent && (
-            <div style={{ ...anim(35), marginBottom: '0.9rem' }}>
+            <div style={{ ...anim(35), marginBottom: '1.05rem' }}>
               <button
                 onClick={handleInstallApp}
                 style={{
@@ -200,7 +200,7 @@ export default function HomeScreen({ onSelectSession, onResume, todayStatus, str
           )}
 
           {!installPromptEvent && showIosInstallHint && (
-            <div style={{ ...anim(35), marginBottom: '0.9rem', padding: '8px 10px', borderRadius: 10, border: '1px solid var(--border-soft)', background: 'var(--card-bg-soft)', display: 'flex', alignItems: 'center', gap: 7 }}>
+            <div style={{ ...anim(35), marginBottom: '1.05rem', padding: '10px 12px', borderRadius: 12, border: '1px solid var(--border-soft)', background: 'var(--card-bg-soft)', display: 'flex', alignItems: 'center', gap: 8 }}>
               <Share2 size={11} color="var(--text-muted)" />
               <span style={{ fontFamily: "'Raleway', sans-serif", fontSize: '9px', color: 'var(--text-muted)', letterSpacing: '0.06em' }}>
                 Use Share → Add to Home Screen.
@@ -209,7 +209,7 @@ export default function HomeScreen({ onSelectSession, onResume, todayStatus, str
           )}
 
           {/* Today's status bar */}
-          <div style={{ ...anim(80), marginBottom: '1.2rem' }}>
+          <div style={{ ...anim(80), marginBottom: '1.55rem' }}>
             <TodayStatusBar
               morningDone={morningDone}
               nightDone={nightDone}
@@ -220,13 +220,13 @@ export default function HomeScreen({ onSelectSession, onResume, todayStatus, str
           </div>
 
           {/* 28-day tracker — collapsible */}
-          <div style={{ ...anim(100), marginBottom: '1.1rem' }}>
+          <div style={{ ...anim(100), marginBottom: '1.35rem' }}>
             <button
               onClick={() => setShowTracker(s => !s)}
               style={{
                 width: '100%', padding: '10px 14px',
                 background: showTracker ? 'var(--card-bg-soft)' : 'var(--card-bg-soft)',
-                border: `1px solid ${showTracker ? 'var(--card-border)' : 'var(--border-soft)'}`,
+                border: `1px solid ${showTracker ? 'var(--border-soft)' : 'var(--border-soft)'}`,
                 borderRadius: showTracker ? '14px 14px 0 0' : 14,
                 cursor: 'pointer',
                 display: 'flex', alignItems: 'center', gap: 8,
@@ -244,7 +244,7 @@ export default function HomeScreen({ onSelectSession, onResume, todayStatus, str
             {showTracker && (
               <div style={{
                 background: 'var(--card-bg-soft)',
-                border: '1px solid var(--border-soft)',
+                border: '1px solid color-mix(in srgb, var(--border-soft) 75%, transparent)',
                 borderTop: 'none',
                 borderRadius: '0 0 14px 14px',
                 padding: '1rem',
@@ -257,11 +257,11 @@ export default function HomeScreen({ onSelectSession, onResume, todayStatus, str
 
           {/* Resume banner */}
           {resumeSession && (
-            <div style={{ ...anim(120), marginBottom: '0.85rem' }}>
+            <div style={{ ...anim(120), marginBottom: '1.05rem' }}>
               <button onClick={onResume} style={{
-                width: '100%', padding: '11px 14px', borderRadius: 12,
-                border: '1px solid var(--card-border)', background: 'var(--card-bg-soft)',
-                cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10, textAlign: 'left',
+                width: '100%', padding: '13px 15px', borderRadius: 14,
+                border: '1px solid var(--border-soft)', background: 'var(--card-bg-soft)',
+                cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 11, textAlign: 'left',
               }}>
                 <RotateCcw size={14} color="var(--gold-accent)" strokeWidth={1.8} />
                 <div style={{ flex: 1 }}>
@@ -276,7 +276,7 @@ export default function HomeScreen({ onSelectSession, onResume, todayStatus, str
           )}
 
           {/* Session cards */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <SessionCard
               onClick={() => { if (morningCancelled) onRestartSession('morning'); else if (!morningDone) onSelectSession('morning'); }}
               icon={<Sun size={20} color="#D4892A" strokeWidth={1.5} />}
@@ -300,15 +300,15 @@ export default function HomeScreen({ onSelectSession, onResume, todayStatus, str
           </div>
 
           {bothDone && (
-            <div style={{ textAlign: 'center', marginTop: '1.4rem', ...anim(300) }}>
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 16px', borderRadius: 20, background: 'rgba(200,169,110,0.08)', border: '1px solid rgba(200,169,110,0.18)' }}>
+            <div style={{ textAlign: 'center', marginTop: '1.8rem', ...anim(300) }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 20, background: 'var(--button-ghost-bg)', border: '1px solid var(--border-soft)' }}>
                 <Check size={12} color="var(--gold-accent)" />
                 <span style={{ fontFamily: "'Raleway', sans-serif", fontSize: '9px', color: 'var(--gold-accent)', letterSpacing: '0.2em', textTransform: 'uppercase' }}>Both sessions complete today</span>
               </div>
             </div>
           )}
 
-          <div style={{ textAlign: 'center', marginTop: '1.4rem', fontFamily: "'Raleway', sans-serif", fontSize: '8px', color: 'var(--text-subtle)', letterSpacing: '0.2em', textTransform: 'uppercase', ...anim(350) }}>
+          <div style={{ textAlign: 'center', marginTop: '1.85rem', fontFamily: "'Raleway', sans-serif", fontSize: '8px', color: 'var(--text-subtle)', letterSpacing: '0.2em', textTransform: 'uppercase', ...anim(350) }}>
             Swami Satyananda Saraswati
           </div>
         </div>
@@ -332,8 +332,8 @@ export default function HomeScreen({ onSelectSession, onResume, todayStatus, str
 
       {showSettingsModal && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 55, background: 'var(--overlay-backdrop-strong)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.2rem', animation: 'fadeIn 0.2s ease both' }}>
-          <div style={{ width: '100%', maxWidth: 420, maxHeight: '88vh', overflowY: 'auto', background: 'var(--surface-bg)', border: '1px solid var(--surface-border)', borderRadius: 18, padding: '1rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
+          <div style={{ width: '100%', maxWidth: 430, maxHeight: '88vh', overflowY: 'auto', background: 'var(--surface-bg)', border: '1px solid var(--surface-border)', borderRadius: 20, padding: '1.15rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: 14 }}>
               <div style={{ flex: 1 }}>
                 <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: '8px', color: 'var(--gold-accent)', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 3 }}>Personal</div>
                 <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.45rem', color: 'var(--surface-text)' }}>Settings</div>
@@ -410,7 +410,7 @@ export default function HomeScreen({ onSelectSession, onResume, todayStatus, str
 
 function SettingsRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '8px 10px', borderRadius: 10, border: '1px solid var(--surface-border)', background: 'var(--field-bg)', marginBottom: 7 }}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '10px 11px', borderRadius: 12, border: '1px solid var(--surface-border)', background: 'var(--field-bg)', marginBottom: 10 }}>
       <span style={{ fontFamily: "'Raleway', sans-serif", fontSize: '9px', color: 'var(--muted-text)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{label}</span>
       {children}
     </div>
@@ -435,13 +435,13 @@ function TodayStatusBar({
     { label: 'Night', done: nightDone, cancelled: nightCancelled, color: '#6B7FBF', icon: <Moon size={11} /> },
   ];
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-      <div style={{ display: 'flex', gap: 8 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div style={{ display: 'flex', gap: 10 }}>
         {items.map(item => (
           <div key={item.label} style={{
-            flex: 1, padding: '10px 12px', borderRadius: 12,
+            flex: 1, padding: '11px 12px', borderRadius: 14,
             background: item.done ? `${item.color}10` : item.cancelled ? 'rgba(220,80,80,0.06)' : 'var(--card-bg-soft)',
-            border: `1px solid ${item.done ? item.color + '35' : item.cancelled ? 'rgba(220,80,80,0.18)' : 'var(--border-soft)'}`,
+            border: `1px solid ${item.done ? item.color + '24' : item.cancelled ? 'rgba(220,80,80,0.12)' : 'transparent'}`,
             display: 'flex', alignItems: 'center', gap: 8,
           }}>
             <span style={{ color: item.done ? item.color : item.cancelled ? '#E07070' : 'var(--text-subtle)' }}>{item.icon}</span>
@@ -459,9 +459,9 @@ function TodayStatusBar({
       <div style={{
         display: 'flex',
         gap: 8,
-        padding: '8px 10px',
-        borderRadius: 12,
-        border: '1px solid var(--border-soft)',
+        padding: '9px 10px',
+        borderRadius: 14,
+        border: 'none',
         background: 'var(--card-bg-soft)',
       }}>
         <StreakPill label="Morning" value={streaks.morning} color="#D4892A" />
@@ -504,19 +504,19 @@ function SessionCard({ onClick, icon, accentColor, title, subtitle, status, onCa
         onTouchStart={() => setHovered(true)} onTouchEnd={() => setTimeout(() => setHovered(false), 200)}
         disabled={isDone}
         style={{
-          width: '100%', display: 'flex', alignItems: 'center', gap: 14, padding: '1rem 1.1rem 1rem 1.3rem',
-          border: `1px solid ${isDone ? accentColor + '40' : isCancelled ? 'rgba(220,80,80,0.2)' : hovered ? accentColor + '55' : 'var(--border-soft)'}`,
-          borderRadius: 16,
-          background: isDone ? `${accentColor}08` : isCancelled ? 'rgba(220,80,80,0.04)' : hovered ? 'var(--card-bg-soft)' : 'var(--card-bg-soft)',
+          width: '100%', display: 'flex', alignItems: 'center', gap: 15, padding: '1.15rem 1.18rem 1.15rem 1.22rem',
+          border: `1px solid ${isDone ? accentColor + '2D' : isCancelled ? 'rgba(220,80,80,0.14)' : hovered ? accentColor + '2F' : 'transparent'}`,
+          borderRadius: 18,
+          background: isDone ? `${accentColor}07` : isCancelled ? 'rgba(220,80,80,0.035)' : 'var(--card-bg-soft)',
           cursor: isDone ? 'default' : 'pointer', textAlign: 'left', transition: 'all 0.22s ease',
           position: 'relative', overflow: 'hidden',
         }}
       >
         {/* Left accent stripe */}
-        <div style={{ position: 'absolute', left: 0, top: '15%', bottom: '15%', width: 3, borderRadius: 2, background: isDone ? accentColor : isCancelled ? '#E07070' : hovered ? accentColor : 'transparent', transition: 'background 0.22s', boxShadow: (isDone || hovered) ? `0 0 8px ${accentColor}88` : 'none' }} />
+        <div style={{ position: 'absolute', left: 0, top: '18%', bottom: '18%', width: 2, borderRadius: 2, background: isDone ? accentColor : isCancelled ? '#E07070' : hovered ? accentColor : 'transparent', transition: 'background 0.22s', boxShadow: (isDone || hovered) ? `0 0 6px ${accentColor}66` : 'none' }} />
 
         {/* Icon box */}
-        <div style={{ width: 44, height: 44, borderRadius: 12, flexShrink: 0, background: isDone ? `${accentColor}15` : `${accentColor}10`, border: `1px solid ${isDone ? accentColor + '44' : accentColor + '22'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+        <div style={{ width: 44, height: 44, borderRadius: 12, flexShrink: 0, background: isDone ? `${accentColor}14` : `${accentColor}0d`, border: `1px solid ${isDone ? accentColor + '30' : accentColor + '1e'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
           {icon}
           {isDone && (
             <div style={{ position: 'absolute', inset: 0, borderRadius: 12, background: `${accentColor}20`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -547,7 +547,7 @@ function SessionCard({ onClick, icon, accentColor, title, subtitle, status, onCa
       {status === 'pending' && (
         <button
           onClick={e => { e.stopPropagation(); onCancel(); }}
-          style={{ position: 'absolute', top: 9, right: 9, borderRadius: 8, border: '1px solid rgba(220,80,80,0.2)', background: 'rgba(220,80,80,0.08)', cursor: 'pointer', color: '#E07070', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s', padding: '4px 7px', fontFamily: "'Raleway', sans-serif", fontSize: '7px', letterSpacing: '0.15em', textTransform: 'uppercase' }}
+          style={{ position: 'absolute', top: 10, right: 10, borderRadius: 8, border: '1px solid rgba(220,80,80,0.16)', background: 'rgba(220,80,80,0.06)', cursor: 'pointer', color: '#E07070', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s', padding: '4px 7px', fontFamily: "'Raleway', sans-serif", fontSize: '7px', letterSpacing: '0.15em', textTransform: 'uppercase' }}
           title="Cancel today's session"
         >
           Cancel Today
@@ -557,7 +557,7 @@ function SessionCard({ onClick, icon, accentColor, title, subtitle, status, onCa
       {status === 'cancelled' && (
         <button
           onClick={e => { e.stopPropagation(); onRestart(); }}
-          style={{ position: 'absolute', top: 9, right: 9, borderRadius: 8, border: '1px solid var(--card-border)', background: 'var(--button-ghost-bg)', cursor: 'pointer', color: 'var(--gold-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s', padding: '4px 7px', fontFamily: "'Raleway', sans-serif", fontSize: '7px', letterSpacing: '0.15em', textTransform: 'uppercase' }}
+          style={{ position: 'absolute', top: 10, right: 10, borderRadius: 8, border: '1px solid var(--border-soft)', background: 'var(--button-ghost-bg)', cursor: 'pointer', color: 'var(--gold-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s', padding: '4px 7px', fontFamily: "'Raleway', sans-serif", fontSize: '7px', letterSpacing: '0.15em', textTransform: 'uppercase' }}
           title="Restart today's session"
         >
           Restart Today
@@ -569,7 +569,7 @@ function SessionCard({ onClick, icon, accentColor, title, subtitle, status, onCa
 
 const topBtnStyle: React.CSSProperties = {
   width: 32, height: 32, borderRadius: 9,
-  border: '1px solid var(--surface-border)',
+  border: '1px solid var(--border-soft)',
   background: 'var(--field-bg)',
   cursor: 'pointer', color: 'var(--muted-text)',
   display: 'flex', alignItems: 'center', justifyContent: 'center',

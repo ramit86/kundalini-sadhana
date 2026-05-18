@@ -26,28 +26,28 @@ export default function AdminScreen({ onBack }: Props) {
     <div style={{
       width: '100%', height: '100%',
       display: 'flex', flexDirection: 'column',
-      background: 'linear-gradient(180deg, #0C0A07 0%, #080604 100%)',
+      background: 'var(--home-bg-gradient)',
       overflow: 'hidden',
     }}>
       <div style={{
-        padding: '1rem 1.4rem 0.85rem',
-        borderBottom: '1px solid rgba(200,169,110,0.07)',
+        padding: '1.15rem 1.45rem 1rem',
+        borderBottom: '1px solid var(--border-soft)',
         display: 'flex', alignItems: 'center', gap: 12,
         flexShrink: 0,
       }}>
         <button onClick={onBack} style={{
           width: 36, height: 36, borderRadius: '50%',
-          border: '1px solid rgba(200,169,110,0.14)',
-          background: 'rgba(255,255,255,0.02)', cursor: 'pointer',
-          color: '#8A7A6A', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          border: '1px solid var(--border-soft)',
+          background: 'var(--button-ghost-bg)', cursor: 'pointer',
+          color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
           <ArrowLeft size={14} />
         </button>
         <div style={{ flex: 1 }}>
-          <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: '8px', letterSpacing: '0.3em', textTransform: 'uppercase', color: '#C8A96E', opacity: 0.7, marginBottom: 2 }}>
+          <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: '8px', letterSpacing: '0.3em', textTransform: 'uppercase', color: 'var(--gold-accent)', opacity: 0.7, marginBottom: 2 }}>
             Local
           </div>
-          <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.35rem', fontWeight: 300, color: '#EDE5DA' }}>
+          <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.35rem', fontWeight: 300, color: 'var(--text-primary)' }}>
             Settings Panel
           </div>
         </div>
@@ -55,15 +55,15 @@ export default function AdminScreen({ onBack }: Props) {
 
       <div style={{
         display: 'flex',
-        borderBottom: '1px solid rgba(200,169,110,0.07)',
+        borderBottom: '1px solid var(--border-soft)',
         flexShrink: 0,
       }}>
         {([['stats', <BarChart2 size={12} />, 'Statistics'], ['settings', <Settings size={12} />, 'Settings']] as [Tab, React.ReactNode, string][]).map(([t, icon, label]) => (
           <button key={t} onClick={() => setTab(t)} style={{
             flex: 1, padding: '10px 0',
             background: 'none', border: 'none', cursor: 'pointer',
-            borderBottom: tab === t ? '2px solid #C8A96E' : '2px solid transparent',
-            color: tab === t ? '#C8A96E' : '#4A4038',
+            borderBottom: tab === t ? '2px solid var(--gold-accent)' : '2px solid transparent',
+            color: tab === t ? 'var(--gold-accent)' : 'var(--text-subtle)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
             fontFamily: "'Raleway', sans-serif", fontSize: '9px',
             letterSpacing: '0.18em', textTransform: 'uppercase',
@@ -73,7 +73,7 @@ export default function AdminScreen({ onBack }: Props) {
         ))}
       </div>
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: '1rem 1.2rem' }}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '1.25rem 1.3rem 1.6rem' }}>
         {tab === 'stats' ? <StatsTab days={days} streaks={streaks} /> : <LocalSettingsTab />}
       </div>
     </div>
@@ -94,21 +94,21 @@ function StatsTab({
   const bothCompleted = days.filter(d => d.morning === 'completed' && d.night === 'completed').length;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-      <div style={{ display: 'flex', gap: 8 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div style={{ display: 'flex', gap: 10 }}>
         <StatCard label="Morning Done" value={completedMorning} />
         <StatCard label="Night Done" value={completedNight} />
         <StatCard label="Both Done" value={bothCompleted} />
       </div>
-      <div style={{ display: 'flex', gap: 8 }}>
+      <div style={{ display: 'flex', gap: 10 }}>
         <StatCard label="Morning Cancelled" value={cancelledMorning} />
         <StatCard label="Night Cancelled" value={cancelledNight} />
         <StatCard label="Tracked Days" value={days.length} />
       </div>
       <div style={{
-        padding: '10px 12px', borderRadius: 10,
-        background: 'rgba(255,255,255,0.02)',
-        border: '1px solid rgba(200,169,110,0.08)',
+        padding: '12px 13px', borderRadius: 12,
+        background: 'var(--card-bg-soft)',
+        border: '1px solid var(--border-soft)',
         display: 'grid', gap: 4,
       }}>
         <div style={summaryRowStyle}><span>Morning Streak</span><span>{streaks.morning}d</span></div>
@@ -217,13 +217,13 @@ function LocalSettingsTab() {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
       <div style={{
-        padding: '1rem', borderRadius: 12,
-        background: 'rgba(255,255,255,0.02)',
-        border: '1px solid rgba(200,169,110,0.1)',
+        padding: '1.1rem', borderRadius: 14,
+        background: 'var(--card-bg-soft)',
+        border: '1px solid var(--border-soft)',
       }}>
-        <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: '9px', letterSpacing: '0.22em', textTransform: 'uppercase', color: '#C8A96E', marginBottom: 12 }}>
+        <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: '9px', letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--gold-accent)', marginBottom: 14 }}>
           Reminders
         </div>
         <div style={{ display: 'grid', gap: 7 }}>
@@ -244,17 +244,17 @@ function LocalSettingsTab() {
             <input type="time" value={reminderSettings.nightReminderTime} onChange={e => applyReminder('nightReminderTime', e.target.value)} style={{ ...inputStyle, width: 112, padding: '7px 8px' }} />
           </div>
         </div>
-        <div style={{ marginTop: 10, fontFamily: "'Raleway', sans-serif", fontSize: '9px', color: '#7C6E5E', lineHeight: 1.6 }}>
+        <div style={{ marginTop: 12, fontFamily: "'Raleway', sans-serif", fontSize: '9px', color: 'var(--text-muted)', lineHeight: 1.65 }}>
           Reminder times are saved. Notification support will be added later.
         </div>
       </div>
 
       <div style={{
-        padding: '1rem', borderRadius: 12,
-        background: 'rgba(255,255,255,0.02)',
-        border: '1px solid rgba(200,169,110,0.1)',
+        padding: '1.1rem', borderRadius: 14,
+        background: 'var(--card-bg-soft)',
+        border: '1px solid var(--border-soft)',
       }}>
-        <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: '9px', letterSpacing: '0.22em', textTransform: 'uppercase', color: '#C8A96E', marginBottom: 12 }}>
+        <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: '9px', letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--gold-accent)', marginBottom: 14 }}>
           Practice Personalization
         </div>
         <div style={{ display: 'grid', gap: 8 }}>
@@ -265,16 +265,16 @@ function LocalSettingsTab() {
             const favorite = !!meta.isFavorite;
             return (
               <div key={pr.id} style={{
-                padding: '9px 10px', borderRadius: 10,
-                border: '1px solid rgba(200,169,110,0.08)',
-                background: 'rgba(255,255,255,0.015)',
+                padding: '10px 11px', borderRadius: 11,
+                border: '1px solid var(--border-soft)',
+                background: 'color-mix(in srgb, var(--card-bg-soft) 92%, transparent)',
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
                   <span style={{ fontFamily: "'Raleway', sans-serif", fontSize: '8px', color: pr.session === 'Morning' ? '#D4892A' : '#6B7FBF', letterSpacing: '0.14em', textTransform: 'uppercase' }}>
                     {pr.session}
                   </span>
-                  <span style={{ flex: 1, fontFamily: "'Raleway', sans-serif", fontSize: '10px', color: '#BBA98E' }}>{pr.name}</span>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 5, fontFamily: "'Raleway', sans-serif", fontSize: '8px', color: '#9A8A74', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                  <span style={{ flex: 1, fontFamily: "'Raleway', sans-serif", fontSize: '10px', color: 'var(--text-muted)' }}>{pr.name}</span>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 5, fontFamily: "'Raleway', sans-serif", fontSize: '8px', color: 'var(--text-subtle)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
                     <input type="checkbox" checked={favorite} onChange={e => patchPracticeMeta(pr.id, { isFavorite: e.target.checked })} />
                     Favorite
                   </label>
@@ -294,7 +294,7 @@ function LocalSettingsTab() {
                       rows={2}
                       style={{ ...inputStyle, resize: 'vertical', minHeight: 50, fontSize: '10px', padding: '8px 10px' }}
                     />
-                    <div style={{ textAlign: 'right', marginTop: 2, fontFamily: "'Raleway', sans-serif", fontSize: '8px', color: '#6C5F52' }}>
+                    <div style={{ textAlign: 'right', marginTop: 2, fontFamily: "'Raleway', sans-serif", fontSize: '8px', color: 'var(--text-subtle)' }}>
                       {note.length}/160
                     </div>
                   </div>
@@ -306,11 +306,11 @@ function LocalSettingsTab() {
       </div>
 
       <div style={{
-        padding: '1rem', borderRadius: 12,
-        background: 'rgba(255,255,255,0.02)',
-        border: '1px solid rgba(200,169,110,0.1)',
+        padding: '1.1rem', borderRadius: 14,
+        background: 'var(--card-bg-soft)',
+        border: '1px solid var(--border-soft)',
       }}>
-        <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: '9px', letterSpacing: '0.22em', textTransform: 'uppercase', color: '#C8A96E', marginBottom: 12 }}>
+        <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: '9px', letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--gold-accent)', marginBottom: 14 }}>
           Backup & Restore
         </div>
         <div style={{ display: 'grid', gap: 7, marginBottom: 10 }}>
@@ -330,7 +330,7 @@ function LocalSettingsTab() {
         </div>
         <div style={{
           padding: '10px 12px', borderRadius: 10,
-          background: 'rgba(255,255,255,0.015)', border: '1px solid rgba(200,169,110,0.07)',
+          background: 'color-mix(in srgb, var(--card-bg-soft) 92%, transparent)', border: '1px solid var(--border-soft)',
           marginBottom: 10,
         }}>
           <div style={summaryRowStyle}><span>App Version</span><span>{backupSummary.appVersion}</span></div>
@@ -369,21 +369,21 @@ function LocalSettingsTab() {
 function StatCard({ label, value }: { label: string; value: string | number }) {
   return (
     <div style={{
-      flex: 1, padding: '0.85rem', borderRadius: 12,
-      background: 'rgba(255,255,255,0.02)',
-      border: '1px solid rgba(200,169,110,0.07)',
+      flex: 1, padding: '0.95rem', borderRadius: 14,
+      background: 'var(--card-bg-soft)',
+      border: '1px solid var(--border-soft)',
       textAlign: 'center',
     }}>
-      <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.7rem', color: '#C8A96E', lineHeight: 1 }}>{value}</div>
-      <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: '8px', color: '#4A4038', letterSpacing: '0.15em', textTransform: 'uppercase', marginTop: 4 }}>{label}</div>
+      <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.7rem', color: 'var(--gold-accent)', lineHeight: 1 }}>{value}</div>
+      <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: '8px', color: 'var(--text-subtle)', letterSpacing: '0.15em', textTransform: 'uppercase', marginTop: 4 }}>{label}</div>
     </div>
   );
 }
 
 const inputStyle: React.CSSProperties = {
   width: '100%', padding: '10px 12px',
-  background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(200,169,110,0.1)',
-  borderRadius: 8, color: '#C8B89A',
+  background: 'var(--field-bg)', border: '1px solid var(--field-border)',
+  borderRadius: 9, color: 'var(--field-text)',
   fontFamily: "'Raleway', sans-serif", fontSize: '11px', fontWeight: 300,
   outline: 'none',
 };
@@ -392,9 +392,9 @@ const adminActionBtnStyle: React.CSSProperties = {
   width: '100%',
   padding: '10px 12px',
   borderRadius: 10,
-  background: 'rgba(200,169,110,0.08)',
-  border: '1px solid rgba(200,169,110,0.2)',
-  color: '#C8A96E',
+  background: 'var(--button-ghost-bg)',
+  border: '1px solid var(--border-soft)',
+  color: 'var(--gold-accent)',
   cursor: 'pointer',
   fontFamily: "'Raleway', sans-serif",
   fontSize: '9px',
@@ -408,7 +408,7 @@ const summaryRowStyle: React.CSSProperties = {
   gap: 12,
   fontFamily: "'Raleway', sans-serif",
   fontSize: '9px',
-  color: '#8A7A6A',
+  color: 'var(--text-muted)',
   marginBottom: 4,
 };
 
@@ -417,16 +417,16 @@ const settingsRowStyle: React.CSSProperties = {
   alignItems: 'center',
   justifyContent: 'space-between',
   gap: 12,
-  padding: '8px 10px',
-  borderRadius: 10,
-  border: '1px solid rgba(200,169,110,0.08)',
-  background: 'rgba(255,255,255,0.015)',
+  padding: '9px 10px',
+  borderRadius: 11,
+  border: '1px solid var(--border-soft)',
+  background: 'color-mix(in srgb, var(--card-bg-soft) 92%, transparent)',
 };
 
 const settingsLabelStyle: React.CSSProperties = {
   fontFamily: "'Raleway', sans-serif",
   fontSize: '9px',
-  color: '#BBA98E',
+  color: 'var(--text-muted)',
   letterSpacing: '0.08em',
   textTransform: 'uppercase',
 };
