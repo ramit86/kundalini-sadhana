@@ -7,9 +7,7 @@ import { Session, CHAKRA_MAP, ChakraKey } from '../data/sessions';
 import {
   startAmbient, stopAmbient, setAmbientVolume, ringBell, resumeAudioContextFromGesture, getAudioContextState, isAmbientActive, isAmbientFileMissing,
 } from '../audio/audioManager';
-import {
-  playNarrationForPractice, stopSpeaking, GuidanceMode,
-} from '../audio/voiceManager';
+import { stopSpeaking } from '../audio/voiceManager';
 import {
   saveProgress, clearProgress,
   setStoredAmbientVolume, getAmbientVolume,
@@ -19,12 +17,14 @@ import TimerRing from '../components/TimerRing';
 import ChakraDots from '../components/ChakraDots';
 import InstructionBox from '../components/InstructionBox';
 import ParticleField from '../components/ParticleField';
-import VoicePicker from '../components/VoicePicker';
 import ChakraOverlay from '../components/ChakraOverlay';
 import { CHAKRA_INFO } from '../data/chakraInfo';
 import { requestWakeLock, releaseWakeLock, WakeLockMode } from '../utils/wakeLock';
 
 const CHAKRA_SEQUENCE = ['Bindu', 'Ajna', 'Vishuddhi', 'Anahata', 'Manipura', 'Swadhisthana', 'Mooladhara'] as const;
+const NARRATION_TEMP_DISABLED = true;
+const MODULE_TRANSITION_GAP_MS = 3000;
+const MODULE_START_BELL_LEAD_MS = 650;
 
 const CHAKRA_SHORT_MEANING: Partial<Record<string, string>> = {
   Mooladhara: 'Rooted presence and steadiness.',
@@ -90,13 +90,8 @@ export default function ActiveScreen({
   );
   const [isRunning, setIsRunning] = useState(false);
   const [ambientOn, setAmbientOn] = useState(prefs.ambientOn ?? true);
-  const [voiceOn, setVoiceOn] = useState(prefs.voiceOn ?? true);
   const [ambientVol, setAmbientVol] = useState(getAmbientVolume());
-  const [isSpeaking, setIsSpeaking] = useState(false);
-  const [narrationText, setNarrationText] = useState('');
-  const [showVoicePicker, setShowVoicePicker] = useState(false);
   const [showChakraOverlay, setShowChakraOverlay] = useState(false);
-  const [guidanceMode, setGuidanceMode] = useState<GuidanceMode>(prefs.guidanceMode ?? 'full');
   const [bellFlash, setBellFlash] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [practiceTransition, setPracticeTransition] = useState(false);
@@ -117,6 +112,8 @@ export default function ActiveScreen({
   const practiceRef = useRef(practiceIndex);
   const isRunningRef = useRef(isRunning);
   const controlsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const transitionTokenRef = useRef(0);
+  const transitionTimeoutsRef = useRef<number[]>([]);
 
   practiceRef.current = practiceIndex;
   isRunningRef.current = isRunning;
@@ -127,6 +124,20 @@ export default function ActiveScreen({
   const isMobile = viewportWidth < 700;
   const showDesktopPlaceholder = viewportWidth >= 1180;
 
+  const clearTransitionTimeouts = useCallback(() => {
+    transitionTimeoutsRef.current.forEach(t => window.clearTimeout(t));
+    transitionTimeoutsRef.current = [];
+  }, []);
+
+  const scheduleTransition = useCallback((fn: () => void, delayMs: number) => {
+    const id = window.setTimeout(() => {
+      transitionTimeoutsRef.current = transitionTimeoutsRef.current.filter(t => t !== id);
+      fn();
+    }, delayMs);
+    transitionTimeoutsRef.current.push(id);
+    return id;
+  }, []);
+
   const resetControlsTimer = useCallback(() => {
     setShowControls(true);
     if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
@@ -136,6 +147,8 @@ export default function ActiveScreen({
   }, []);
 
   const stopTimer = useCallback(() => {
+    transitionTokenRef.current += 1;
+    clearTransitionTimeouts();
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
@@ -143,42 +156,15 @@ export default function ActiveScreen({
     setIsRunning(false);
     stopAmbient();
     stopSpeaking();
-    setIsSpeaking(false);
-    setNarrationText('');
     setShowControls(true);
     if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
     void releaseWakeLock();
-  }, []);
+  }, [clearTransitionTimeouts]);
 
-  const doSpeak = useCallback((pIdx: number, gMode?: GuidanceMode) => {
-    const p = session.practices[pIdx];
-    const mode = gMode ?? guidanceMode;
-    if (!p || !voiceOn || mode === 'silent') return;
-
-    setNarrationText(`${p.name} · ${p.chakra}`);
-    void playNarrationForPractice({
-      name: p.name,
-      chakra: p.chakra,
-      mode,
-      onStart: () => setIsSpeaking(true),
-      onEnd: () => { setIsSpeaking(false); setNarrationText(''); },
-    });
-  }, [session, voiceOn, guidanceMode]);
-
-  const loadPractice = useCallback((
-    idx: number,
-    autoStart = false,
-    opts?: { transitionBell?: boolean }
-  ) => {
-    stopTimer();
+  const setPracticeVisualState = useCallback((idx: number) => {
     const p = session.practices[idx];
     if (!p) return;
-
-    const shouldTransitionBell = opts?.transitionBell ?? false;
-    if (shouldTransitionBell) ringBell(1);
-
     const TRANSITION_MS = 820;
-    const SETTLE_MS = 520;
 
     setPracticeIndex(idx);
     setTimeRemaining(p.duration);
@@ -187,35 +173,56 @@ export default function ActiveScreen({
 
     setPracticeTransition(true);
     setAuraTransitionPulse(true);
-    setTimeout(() => setPracticeTransition(false), TRANSITION_MS);
-    setTimeout(() => setAuraTransitionPulse(false), 960);
+    window.setTimeout(() => setPracticeTransition(false), TRANSITION_MS);
+    window.setTimeout(() => setAuraTransitionPulse(false), 960);
+  }, [session]);
 
-    setTimeout(() => {
-      if (voiceOn && guidanceMode !== 'silent') doSpeak(idx);
-      if (autoStart) {
-        if (ambientOn) {
-          void startAmbient(p.chakra, ambientVol);
-        }
-        setTimeout(() => {
-          setIsRunning(true);
-          if (import.meta.env.DEV) {
-            setAudioDebug({
-              state: getAudioContextState(),
-              ambientActive: isAmbientActive(),
-              ambientMissing: isAmbientFileMissing(),
-            });
-          }
-        }, 120);
+  const startModulePlayback = useCallback((idx: number, opts?: { bellAtStart?: boolean; token?: number }) => {
+    const p = session.practices[idx];
+    if (!p) return;
+    const token = opts?.token ?? transitionTokenRef.current;
+    const bellAtStart = opts?.bellAtStart ?? false;
+
+    if (bellAtStart) ringBell(1);
+    const delay = bellAtStart ? MODULE_START_BELL_LEAD_MS : 0;
+
+    scheduleTransition(() => {
+      if (token !== transitionTokenRef.current) return;
+      if (ambientOn) {
+        void startAmbient(p.chakra, ambientVol);
       }
-    }, SETTLE_MS);
-  }, [session, stopTimer, voiceOn, guidanceMode, doSpeak, ambientOn, ambientVol]);
+      setIsRunning(true);
+      if (import.meta.env.DEV) {
+        setAudioDebug({
+          state: getAudioContextState(),
+          ambientActive: isAmbientActive(),
+          ambientMissing: isAmbientFileMissing(),
+        });
+      }
+    }, delay);
+  }, [ambientOn, ambientVol, scheduleTransition, session]);
+
+  const queueModuleTransition = useCallback((nextIdx: number) => {
+    const p = session.practices[nextIdx];
+    if (!p) return;
+
+    transitionTokenRef.current += 1;
+    const token = transitionTokenRef.current;
+    clearTransitionTimeouts();
+
+    stopAmbient(true);
+    setPracticeVisualState(nextIdx);
+    scheduleTransition(() => {
+      if (token !== transitionTokenRef.current) return;
+      startModulePlayback(nextIdx, { bellAtStart: true, token });
+    }, MODULE_TRANSITION_GAP_MS);
+  }, [clearTransitionTimeouts, scheduleTransition, session, setPracticeVisualState, startModulePlayback]);
 
   const doEnd = useCallback(() => {
     stopTimer();
     clearProgress();
-    ringBell(3);
     haptic('heavy');
-    setTimeout(() => onEnd(practiceRef.current + 1), 800);
+    window.setTimeout(() => onEnd(practiceRef.current + 1), 700);
   }, [stopTimer, onEnd]);
 
   useEffect(() => {
@@ -230,16 +237,23 @@ export default function ActiveScreen({
           intervalRef.current = null;
           setIsRunning(false);
           stopSpeaking();
-          setIsSpeaking(false);
           ringBell();
           haptic('medium');
           setBellFlash(true);
-          setTimeout(() => setBellFlash(false), 500);
+          window.setTimeout(() => setBellFlash(false), 500);
+          stopAmbient(true);
           const nextIdx = practiceRef.current + 1;
-          setTimeout(() => {
-            if (nextIdx >= session.practices.length) doEnd();
-            else loadPractice(nextIdx, true, { transitionBell: false });
-          }, 1000);
+          if (nextIdx >= session.practices.length) {
+            transitionTokenRef.current += 1;
+            const token = transitionTokenRef.current;
+            clearTransitionTimeouts();
+            scheduleTransition(() => {
+              if (token !== transitionTokenRef.current) return;
+              doEnd();
+            }, MODULE_TRANSITION_GAP_MS);
+          } else {
+            queueModuleTransition(nextIdx);
+          }
           return 0;
         }
         saveProgress(session.key, practiceRef.current, next);
@@ -248,7 +262,7 @@ export default function ActiveScreen({
     }, 1000);
 
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
-  }, [isRunning, ambientOn, ambientVol, session, doEnd, loadPractice, resetControlsTimer]);
+  }, [isRunning, session, clearTransitionTimeouts, doEnd, queueModuleTransition, resetControlsTimer, scheduleTransition]);
 
   useEffect(() => {
     if (isRunning) {
@@ -270,11 +284,12 @@ export default function ActiveScreen({
   useEffect(() => {
     document.body.style.overflow = 'hidden';
     return () => {
+      clearTransitionTimeouts();
       document.body.style.overflow = '';
       void releaseWakeLock();
       setWakeLockMode('inactive');
     };
-  }, []);
+  }, [clearTransitionTimeouts]);
 
   useEffect(() => {
     const onResize = () => setViewportWidth(window.innerWidth);
@@ -304,18 +319,12 @@ export default function ActiveScreen({
     haptic('light');
     if (isRunning) stopTimer();
     else {
+      transitionTokenRef.current += 1;
+      const token = transitionTokenRef.current;
+      clearTransitionTimeouts();
       await resumeAudioContextFromGesture();
-      if (ambientOn) {
-        await startAmbient(practice.chakra, ambientVol);
-      }
-      setIsRunning(true);
-      if (import.meta.env.DEV) {
-        setAudioDebug({
-          state: getAudioContextState(),
-          ambientActive: isAmbientActive(),
-          ambientMissing: isAmbientFileMissing(),
-        });
-      }
+      const atModuleStart = timeRemaining === practice.duration;
+      startModulePlayback(practiceIndex, { bellAtStart: atModuleStart, token });
     }
   };
 
@@ -323,6 +332,7 @@ export default function ActiveScreen({
     haptic('light');
     stopTimer();
     setTimeRemaining(session.practices[practiceIndex].duration);
+    saveProgress(session.key, practiceIndex, session.practices[practiceIndex].duration);
   };
 
   const handleSkip = () => {
@@ -330,7 +340,7 @@ export default function ActiveScreen({
     stopTimer();
     const next = practiceIndex + 1;
     if (next >= session.practices.length) { doEnd(); return; }
-    loadPractice(next, false, { transitionBell: true });
+    queueModuleTransition(next);
   };
 
   const handleGoHome = () => {
@@ -377,24 +387,11 @@ export default function ActiveScreen({
     }
   };
 
-  const handleToggleVoice = () => {
-    haptic('light');
-    const next = !voiceOn;
-    setVoiceOn(next);
-    savePreferences({ voiceOn: next });
-    if (!next) { stopSpeaking(); setIsSpeaking(false); setNarrationText(''); }
-  };
-
   const handleVolumeChange = (v: number) => {
     const vol = v / 100;
     setAmbientVol(vol);
     setStoredAmbientVolume(vol);
     setAmbientVolume(vol);
-  };
-
-  const handleGuidanceModeChange = (m: GuidanceMode) => {
-    setGuidanceMode(m);
-    savePreferences({ guidanceMode: m });
   };
 
   const totalDone = session.practices.slice(0, practiceIndex).reduce((s, p) => s + p.duration, 0);
@@ -983,17 +980,21 @@ export default function ActiveScreen({
         opacity: showControls ? 1 : 0.12,
         transition: 'opacity 0.5s ease',
       }}>
-        <AudioPill active={voiceOn} onClick={handleToggleVoice}
-          icon={voiceOn ? <Mic size={11} /> : <MicOff size={11} />}
-          label="Voice" indicator={isSpeaking && voiceOn} />
+        <AudioPill
+          active={false}
+          disabled={NARRATION_TEMP_DISABLED}
+          icon={<MicOff size={11} />}
+          label={NARRATION_TEMP_DISABLED ? 'Voice Soon' : 'Voice'}
+        />
 
-        <button onClick={() => setShowVoicePicker(true)}
+        <button
+          disabled={NARRATION_TEMP_DISABLED}
           style={{
             width: 28, height: 28, borderRadius: '50%',
             border: '1px solid var(--border-soft)',
-            background: 'transparent', cursor: 'pointer', color: 'var(--text-subtle)',
+            background: 'transparent', cursor: NARRATION_TEMP_DISABLED ? 'not-allowed' : 'pointer', color: 'var(--text-subtle)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            transition: 'all 0.2s',
+            transition: 'all 0.2s', opacity: NARRATION_TEMP_DISABLED ? 0.45 : 1,
           }}>
           <Settings2 size={11} />
         </button>
@@ -1055,33 +1056,6 @@ export default function ActiveScreen({
         </ControlBtn>
       </div>
 
-      {/* Narration bar */}
-      {narrationText && voiceOn && (
-        <div style={{
-          position: 'absolute', bottom: 0, left: 0, right: 0,
-          padding: '8px 1.4rem',
-          background: 'var(--narration-bg)',
-          fontFamily: "'Raleway', sans-serif",
-          fontSize: '10.5px', color: 'var(--text-muted)',
-          fontStyle: 'italic', letterSpacing: '0.03em',
-          textAlign: 'center', lineHeight: 1.55,
-          borderTop: '1px solid var(--narration-border)',
-          zIndex: 10, animation: 'fadeIn 0.4s ease',
-          backdropFilter: 'blur(8px)',
-        }}>
-          <span style={{ color: cc.dot, opacity: 0.55, marginRight: 5, fontSize: 9 }}>✦</span>
-          {narrationText}
-        </div>
-      )}
-
-      {showVoicePicker && (
-        <VoicePicker
-          onClose={() => setShowVoicePicker(false)}
-          guidanceMode={guidanceMode}
-          onGuidanceModeChange={handleGuidanceModeChange}
-        />
-      )}
-
       {showChakraOverlay && practice && (
         <ChakraOverlay
           chakra={practice.chakra}
@@ -1093,22 +1067,31 @@ export default function ActiveScreen({
 }
 
 function AudioPill({
-  active, onClick, icon, label, indicator,
+  active, icon, label, indicator, disabled,
 }: {
-  active: boolean; onClick: () => void;
-  icon: React.ReactNode; label: string; indicator?: boolean;
+  active: boolean;
+  icon: React.ReactNode;
+  label: string;
+  indicator?: boolean;
+  disabled?: boolean;
 }) {
   return (
-    <button onClick={onClick} style={{
+    <button
+      disabled={disabled}
+      style={{
       display: 'flex', alignItems: 'center', gap: 4,
       padding: '4px 10px', borderRadius: 16,
       border: active ? '1px solid rgba(200,169,110,0.32)' : '1px solid rgba(200,169,110,0.09)',
       background: active ? 'var(--button-ghost-bg)' : 'transparent',
-      cursor: 'pointer', color: active ? 'var(--gold-accent)' : 'var(--button-ghost-fg)',
+      cursor: disabled ? 'not-allowed' : 'pointer',
+      color: active ? 'var(--gold-accent)' : 'var(--button-ghost-fg)',
       fontFamily: "'Raleway', sans-serif",
       fontSize: '9.5px', letterSpacing: '0.1em',
       transition: 'all 0.2s',
-    }}>
+      opacity: disabled ? 0.6 : 1,
+    }}
+      title={disabled ? 'Narration coming soon' : undefined}
+    >
       {icon}
       {label}
       {indicator && (
