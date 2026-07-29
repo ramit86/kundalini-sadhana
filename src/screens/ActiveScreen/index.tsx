@@ -6,6 +6,7 @@ import InstructionBox from '../../components/InstructionBox';
 import ChakraOverlay from '../../components/ChakraOverlay';
 import { CHAKRA_INFO } from '../../data/chakraInfo';
 import { useSessionPlayback } from './useSessionPlayback';
+import JourneyTimeline from './JourneyTimeline';
 import SessionBackdrop from './SessionBackdrop';
 import SessionHeader from './SessionHeader';
 import ChakraBanner from './ChakraBanner';
@@ -13,11 +14,14 @@ import ChakraReflectionPanel from './ChakraReflectionPanel';
 import ChakraBodyMap from './ChakraBodyMap';
 import AudioControlsBar from './AudioControlsBar';
 import TransportControls from './TransportControls';
+import { getSettings, MantraDisplayMode } from '../../store/settingsStore';
+import { SessionLifecycle } from '../../store/sessionStore';
 
 interface Props {
   session: Session;
   initialPracticeIndex?: number;
   initialTimeRemaining?: number;
+  sessionLifecycle: SessionLifecycle;
   onEnd: (practicesCompleted?: number) => void;
   onGoHome: () => void;
   onCancelToday: () => void;
@@ -27,12 +31,14 @@ export default function ActiveScreen({
   session,
   initialPracticeIndex = 0,
   initialTimeRemaining,
+  sessionLifecycle,
   onEnd,
   onGoHome,
   onCancelToday,
 }: Props) {
   const [showChakraOverlay, setShowChakraOverlay] = useState(false);
   const [chakraPanelOpen, setChakraPanelOpen] = useState(false);
+  const ritualSettings = getSettings();
   const [viewportWidth, setViewportWidth] = useState(
     typeof window !== 'undefined' ? window.innerWidth : 0
   );
@@ -80,6 +86,7 @@ export default function ActiveScreen({
     onEnd,
     onGoHome,
     onCancelToday,
+    sessionLifecycle,
   });
 
   const cc = CHAKRA_MAP[practice?.chakra] ?? CHAKRA_MAP['Preparation'];
@@ -102,6 +109,7 @@ export default function ActiveScreen({
       <OpeningRitualScreen
         isMobile={isMobile}
         phase={sessionPhase}
+        mantraDisplay={ritualSettings.mantraDisplay}
         onSkip={skipInvocation}
       />
     );
@@ -198,79 +206,13 @@ export default function ActiveScreen({
         <ChakraDots practices={session.practices} currentIndex={practiceIndex} />
       </div>
 
-      <div style={{
-        position: 'relative',
-        zIndex: 2,
-        flexShrink: 0,
-        padding: isMobile ? '0.15rem 0.48rem 0.05rem' : '0.15rem 1rem 0.05rem',
-      }}>
-        <div
-          style={{
-            display: 'flex',
-            gap: isMobile ? 4 : 8,
-            overflowX: 'auto',
-            paddingBottom: 2,
-            scrollbarWidth: 'none',
-          }}
-        >
-          {session.practices.map((item, idx) => {
-            const state = practiceStates[idx];
-            const isCurrent = idx === practiceIndex;
-            const isCompleted = state?.completed === true || (idx < practiceIndex && !isCurrent);
-            const status = isCurrent ? 'Current' : isCompleted ? 'Completed' : 'Upcoming';
-            const clickable = isCompleted && !isCurrent;
-            const accent = isCurrent ? cc.dot : isCompleted ? 'var(--gold-accent)' : 'var(--text-subtle)';
-            return (
-              <button
-                key={item.name}
-                onClick={() => clickable && handleOpenPractice(idx)}
-                disabled={!clickable}
-                style={{
-                  minWidth: isMobile ? 112 : 132,
-                  borderRadius: 0,
-                  border: 0,
-                  borderBottom: `1px solid ${isCurrent ? cc.dot + '88' : 'transparent'}`,
-                  background: 'transparent',
-                  padding: '0.38rem 0.48rem 0.46rem',
-                  textAlign: 'left',
-                  cursor: clickable ? 'pointer' : 'default',
-                  opacity: isCurrent ? 1 : isCompleted ? 0.68 : 0.38,
-                  flexShrink: 0,
-                }}
-              >
-                <div style={{
-                  fontFamily: "'Raleway', sans-serif",
-                  fontSize: '7.5px',
-                  letterSpacing: '0.16em',
-                  textTransform: 'uppercase',
-                  color: accent,
-                  marginBottom: 3,
-                }}>
-                  {status}
-                </div>
-                <div style={{
-                  fontFamily: "'Cormorant Garamond', serif",
-                  fontSize: '0.88rem',
-                  color: 'var(--text-primary)',
-                  lineHeight: 1.2,
-                  marginBottom: 4,
-                }}>
-                  {item.name}
-                </div>
-                <div style={{
-                  fontFamily: "'Raleway', sans-serif",
-                  fontSize: '8px',
-                  letterSpacing: '0.08em',
-                  color: 'var(--text-subtle)',
-                  textTransform: 'uppercase',
-                }}>
-                  {idx + 1} of {session.practices.length}
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      </div>
+      <JourneyTimeline
+        session={session}
+        practiceIndex={practiceIndex}
+        practiceStates={practiceStates}
+        onOpenPractice={handleOpenPractice}
+        isMobile={isMobile}
+      />
 
       {/* Main body */}
       <div style={{
@@ -499,13 +441,17 @@ function RitualShell({
 function OpeningRitualScreen({
   isMobile,
   phase,
+  mantraDisplay,
   onSkip,
 }: {
   isMobile: boolean;
   phase: string;
+  mantraDisplay: MantraDisplayMode;
   onSkip: () => void;
 }) {
   const isInvocation = phase === 'opening_invocation';
+  const showTranslation = mantraDisplay === 'sanskrit_translation';
+  const showMantra = mantraDisplay !== 'silent';
   return (
     <RitualShell isMobile={isMobile}>
       <div style={{
@@ -528,24 +474,29 @@ function OpeningRitualScreen({
         opacity: isInvocation ? 1 : 0.58,
         transition: 'opacity 1.2s ease',
       }}>
-        {'ॐ असतो मा सद्गमय ।\nतमसो मा ज्योतिर्गमय ।\nमृत्योर्मा अमृतं गमय ।\nॐ शान्तिः शान्तिः शान्तिः ॥'}
+        {showMantra
+          ? 'ॐ असतो मा सद्गमय ।\nतमसो मा ज्योतिर्गमय ।\nमृत्योर्मा अमृतं गमय ।\nॐ शान्तिः शान्तिः शान्तिः ॥'
+          : 'ॐ'}
       </div>
       <div style={{
         width: 32,
         height: 1,
         margin: '22px auto',
         background: 'rgba(200,169,110,0.32)',
+        opacity: showMantra ? 1 : 0.18,
       }} />
-      <div style={{
-        fontFamily: "'Cormorant Garamond', serif",
-        fontSize: isMobile ? '0.98rem' : '1.08rem',
-        color: 'rgba(237,229,218,0.54)',
-        lineHeight: 1.8,
-        whiteSpace: 'pre-line',
-        fontStyle: 'italic',
-      }}>
-        {'Lead me from the unreal to the real.\nLead me from darkness to light.\nLead me from mortality to immortality.\nOm, peace, peace, peace.'}
-      </div>
+      {showTranslation && (
+        <div style={{
+          fontFamily: "'Cormorant Garamond', serif",
+          fontSize: isMobile ? '0.98rem' : '1.08rem',
+          color: 'rgba(237,229,218,0.54)',
+          lineHeight: 1.8,
+          whiteSpace: 'pre-line',
+          fontStyle: 'italic',
+        }}>
+          {'Lead me from the unreal to the real.\nLead me from darkness to light.\nLead me from mortality to immortality.\nOm, peace, peace, peace.'}
+        </div>
+      )}
       <button
         onClick={onSkip}
         style={{

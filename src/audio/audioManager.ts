@@ -1,5 +1,6 @@
 import { ChakraKey } from '../data/sessions';
 import { AUDIO_MANIFEST } from '../data/audioManifest';
+import { getSettings } from '../store/settingsStore';
 
 let audioCtx: AudioContext | null = null;
 
@@ -125,7 +126,7 @@ export function ringBell(times = 1) {
     void times;
     bellBusyUntil = Date.now() + BELL_DURATION_MS;
     stopOneShotAudio();
-    void playOneShotAudio(BELL_PATH, 0.92);
+    void playOneShotAudio(BELL_PATH, clamp01(getSettings().bellVolume));
   } catch (_) {}
 }
 

@@ -18,11 +18,19 @@ export interface SessionState {
 
 const STORAGE_KEY = 'ks_last_session';
 const PREFS_KEY = 'ks_preferences';
+const ACTIVE_SESSION_KEY = 'ks_active_session_v1';
+
+export interface SessionLifecycle {
+  sessionId: string;
+  sessionStartedAt: string;
+}
 
 export interface SavedProgress {
   sessionKey: string;
   practiceIndex: number;
   timeRemaining: number;
+  sessionId?: string;
+  sessionStartedAt?: string;
   resumePracticeIndex?: number;
   resumeTimeRemaining?: number;
   openingInvocationSeen?: boolean;
@@ -42,6 +50,8 @@ export interface Preferences {
 }
 
 export interface SaveProgressPatch {
+  sessionId?: string;
+  sessionStartedAt?: string;
   resumePracticeIndex?: number;
   resumeTimeRemaining?: number;
   openingInvocationSeen?: boolean;
@@ -51,6 +61,48 @@ export interface SaveProgressPatch {
     timeRemaining: number;
     completed: boolean;
   }>;
+}
+
+function createFallbackSessionId() {
+  return `session-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+export function createSessionLifecycle(): SessionLifecycle {
+  return {
+    sessionId: typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+      ? crypto.randomUUID()
+      : createFallbackSessionId(),
+    sessionStartedAt: new Date().toISOString(),
+  };
+}
+
+function normalizeSessionLifecycle(input: unknown): SessionLifecycle | null {
+  if (!input || typeof input !== 'object') return null;
+  const raw = input as Partial<SessionLifecycle>;
+  if (typeof raw.sessionId !== 'string' || !raw.sessionId.trim()) return null;
+  if (typeof raw.sessionStartedAt !== 'string' || !raw.sessionStartedAt.trim()) return null;
+  return {
+    sessionId: raw.sessionId,
+    sessionStartedAt: raw.sessionStartedAt,
+  };
+}
+
+export function getActiveSessionLifecycle(): SessionLifecycle | null {
+  try {
+    const raw = localStorage.getItem(ACTIVE_SESSION_KEY);
+    if (!raw) return null;
+    return normalizeSessionLifecycle(JSON.parse(raw));
+  } catch {
+    return null;
+  }
+}
+
+export function setActiveSessionLifecycle(lifecycle: SessionLifecycle) {
+  localStorage.setItem(ACTIVE_SESSION_KEY, JSON.stringify(lifecycle));
+}
+
+export function invalidateActiveSessionLifecycle() {
+  setActiveSessionLifecycle(createSessionLifecycle());
 }
 
 function resolveCanonicalProgress(raw: Partial<SavedProgress>, practiceStates?: SavedProgress['practiceStates']) {
@@ -103,6 +155,8 @@ function normalizeProgress(input: unknown): SavedProgress | null {
     sessionKey: raw.sessionKey as 'morning' | 'night',
     practiceIndex: raw.practiceIndex,
     timeRemaining: raw.timeRemaining,
+    ...(typeof raw.sessionId === 'string' ? { sessionId: raw.sessionId } : {}),
+    ...(typeof raw.sessionStartedAt === 'string' ? { sessionStartedAt: raw.sessionStartedAt } : {}),
     ...resolveCanonicalProgress(raw, practiceStates),
     openingInvocationSeen: raw.openingInvocationSeen === true,
     ...(typeof raw.sessionPhase === 'string' ? { sessionPhase: raw.sessionPhase } : {}),
@@ -119,10 +173,19 @@ export function saveProgress(
   timeRemaining: number,
   patch?: SaveProgressPatch,
 ) {
+  const activeLifecycle = getActiveSessionLifecycle();
+  const sessionId = patch?.sessionId ?? activeLifecycle?.sessionId;
+  const sessionStartedAt = patch?.sessionStartedAt ?? activeLifecycle?.sessionStartedAt;
+  if (activeLifecycle) {
+    if (!patch?.sessionId) return;
+    if (patch.sessionId !== activeLifecycle.sessionId) return;
+  }
   const next: SavedProgress = {
     sessionKey,
     practiceIndex,
     timeRemaining,
+    ...(sessionId ? { sessionId } : {}),
+    ...(sessionStartedAt ? { sessionStartedAt } : {}),
     resumePracticeIndex: patch?.resumePracticeIndex ?? practiceIndex,
     resumeTimeRemaining: patch?.resumeTimeRemaining ?? timeRemaining,
     ...(patch?.openingInvocationSeen ? { openingInvocationSeen: true } : {}),

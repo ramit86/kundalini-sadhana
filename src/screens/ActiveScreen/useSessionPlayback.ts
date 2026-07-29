@@ -14,6 +14,8 @@ import {
   stopOneShotAudio,
 } from '../../audio/audioManager';
 import {
+  SessionLifecycle,
+  createSessionLifecycle,
   saveProgress,
   clearProgress,
   setStoredAmbientVolume,
@@ -23,6 +25,7 @@ import {
   loadProgress,
   SavedProgress,
 } from '../../store/sessionStore';
+import { getSettings } from '../../store/settingsStore';
 import { requestWakeLock, releaseWakeLock, WakeLockMode } from '../../utils/wakeLock';
 import { haptic } from './haptic';
 import {
@@ -56,6 +59,7 @@ interface Args {
   initialPracticeIndex: number;
   initialTimeRemaining?: number;
   isMobile: boolean;
+  sessionLifecycle: SessionLifecycle;
   onEnd: (practicesCompleted?: number) => void;
   onGoHome: () => void;
   onCancelToday: () => void;
@@ -130,14 +134,28 @@ function resolveInitialPhase(saved: SavedProgress | null, shouldAutoStartOpening
 }
 
 export function useSessionPlayback({
-  session, initialPracticeIndex, initialTimeRemaining, isMobile, onEnd, onGoHome, onCancelToday,
+  session,
+  initialPracticeIndex,
+  initialTimeRemaining,
+  isMobile,
+  sessionLifecycle,
+  onEnd,
+  onGoHome,
+  onCancelToday,
 }: Args) {
   const prefs = getPreferences();
+  const ritualSettings = getSettings();
   const savedProgress = loadProgress();
   const shouldAutoStartOpening =
+    ritualSettings.openingRitualEnabled &&
     !savedProgress?.openingInvocationSeen &&
     initialPracticeIndex === 0 &&
     typeof initialTimeRemaining === 'undefined';
+  const shouldAutoStartPractice =
+    !ritualSettings.openingRitualEnabled &&
+    initialPracticeIndex === 0 &&
+    typeof initialTimeRemaining === 'undefined' &&
+    !savedProgress;
 
   const [practiceIndex, setPracticeIndex] = useState(initialPracticeIndex);
   const [timeRemaining, setTimeRemaining] = useState(
@@ -191,13 +209,16 @@ export function useSessionPlayback({
   const transitionTokenRef = useRef(0);
   const openingStartedRef = useRef(false);
   const completionRequestedRef = useRef(false);
-  const openingInvocationSeenRef = useRef(savedProgress?.openingInvocationSeen === true || !shouldAutoStartOpening);
+  const openingInvocationSeenRef = useRef(
+    savedProgress?.openingInvocationSeen === true || !ritualSettings.openingRitualEnabled || !shouldAutoStartOpening
+  );
 
   practiceRef.current = practiceIndex;
   timeRemainingRef.current = timeRemaining;
   practiceStatesRef.current = practiceStates;
 
   const practice = session.practices[practiceIndex];
+  const currentSessionLifecycle = sessionLifecycle ?? createSessionLifecycle();
 
   const persistProgressSnapshot = useCallback((
     nextPracticeIndex: number,
@@ -208,6 +229,8 @@ export function useSessionPlayback({
   ) => {
     canonicalPracticeIndexRef.current = nextPracticeIndex;
     saveProgress(session.key, nextPracticeIndex, nextTimeRemaining, {
+      sessionId: currentSessionLifecycle.sessionId,
+      sessionStartedAt: currentSessionLifecycle.sessionStartedAt,
       resumePracticeIndex: nextPracticeIndex,
       resumeTimeRemaining: nextTimeRemaining,
       openingInvocationSeen: openingSeen,
@@ -215,7 +238,7 @@ export function useSessionPlayback({
       closingSilentRemaining: nextClosingSilentRemaining,
       practiceStates: serializePracticeStates(nextPracticeStates),
     });
-  }, [closingSilentRemaining, session.key, sessionPhaseRef]);
+  }, [closingSilentRemaining, currentSessionLifecycle.sessionId, currentSessionLifecycle.sessionStartedAt, session.key, sessionPhaseRef]);
 
   const setAudioSnapshot = useCallback(() => {
     if (!import.meta.env.DEV) return;
@@ -509,6 +532,12 @@ export function useSessionPlayback({
     setWakeLockMode('inactive');
   }, [clearTimerInterval, setRunningState, stopPlaybackAudio]);
 
+  const stopSessionActivity = useCallback(() => {
+    stopTimer();
+    setPracticeTransition(false);
+    setAuraTransitionPulse(false);
+  }, [stopTimer]);
+
   const startClosingRitual = useCallback(async () => {
     const token = ++transitionTokenRef.current;
     setTransitionId(token);
@@ -670,6 +699,35 @@ export function useSessionPlayback({
   }, [shouldAutoStartOpening, startOpeningInvocation]);
 
   useEffect(() => {
+    if (!shouldAutoStartPractice) return;
+    const startTimer = window.setTimeout(() => {
+      const token = ++transitionTokenRef.current;
+      setTransitionId(token);
+      openingInvocationSeenRef.current = true;
+      setTransitionDebugEvent('prepare_next', 'opening-disabled', '', session.practices[0]?.name ?? '');
+      void preparePractice(0, token);
+    }, 0);
+    return () => window.clearTimeout(startTimer);
+  }, [preparePractice, session.practices, setTransitionDebugEvent, shouldAutoStartPractice]);
+
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === 'hidden') {
+        stopSessionActivity();
+      }
+    };
+    const handlePageHide = () => {
+      stopSessionActivity();
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('pagehide', handlePageHide);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('pagehide', handlePageHide);
+    };
+  }, [stopSessionActivity]);
+
+  useEffect(() => {
     if (isRunning) {
       void requestWakeLock().then(setWakeLockMode);
     } else if (sessionPhase === 'paused' || sessionPhase === 'closing_complete') {
@@ -754,6 +812,10 @@ export function useSessionPlayback({
       setCurrentPractice(next, saved?.timeRemaining ?? target.duration, { completed: saved?.completed ?? false }, false);
       return;
     }
+    if (isRunning && timeRemainingRef.current > 0) {
+      const confirmed = window.confirm(`Skip ${practice?.name ?? 'this practice'} and continue?`);
+      if (!confirmed) return;
+    }
     if (next >= session.practices.length) {
       void startClosingRitual();
       return;
@@ -767,7 +829,7 @@ export function useSessionPlayback({
 
   const handleGoHome = () => {
     haptic('light');
-    stopTimer();
+    stopSessionActivity();
     onGoHome();
   };
 
@@ -775,7 +837,7 @@ export function useSessionPlayback({
     const confirmed = window.confirm(`Cancel today's ${session.label.toLowerCase()} session and return home?`);
     if (!confirmed) return;
     haptic('medium');
-    stopTimer();
+    stopSessionActivity();
     onCancelToday();
   };
 

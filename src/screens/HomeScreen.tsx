@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
-import { Sun, Moon, RotateCcw, RefreshCw, Settings, Check, Calendar, SlidersHorizontal, X, Download, Share2 } from 'lucide-react';
+import { Sun, Moon, RotateCcw, RefreshCw, Settings, Check, Calendar, SlidersHorizontal, X, Download, Share2, Sparkles } from 'lucide-react';
 import { loadProgress } from '../store/sessionStore';
 import { SESSIONS } from '../data/sessions';
 import { TodayStatusMap } from '../lib/tracker';
-import DailyTracker from '../components/DailyTracker';
-import { getSettings, updateSettings, PersonalSettings, ThemeMode } from '../store/settingsStore';
+import PracticeJourneyPanel from '../components/PracticeJourneyPanel';
+import VoicePicker from '../components/VoicePicker';
+import { getSettings, updateSettings, PersonalSettings, ThemeMode, MantraDisplayMode, SacredPracticeWindow } from '../store/settingsStore';
+import { getSadhanaProfile, updateSadhanaProfile, SadhanaProfile } from '../store/profileStore';
 
 interface Props {
   onSelectSession: (key: 'morning' | 'night') => void;
@@ -29,7 +31,9 @@ export default function HomeScreen({ onSelectSession, onResume, todayStatus, str
   const [showTracker, setShowTracker] = useState(false);
   const [cancelConfirm, setCancelConfirm] = useState<'morning' | 'night' | null>(null);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showVoicePicker, setShowVoicePicker] = useState(false);
   const [personalSettings, setPersonalSettings] = useState<PersonalSettings>(getSettings());
+  const [profile, setProfile] = useState<SadhanaProfile>(getSadhanaProfile());
   const [installPromptEvent, setInstallPromptEvent] = useState<BeforeInstallPromptEvent | null>(null);
   const [showIosInstallHint, setShowIosInstallHint] = useState(false);
 
@@ -87,6 +91,10 @@ export default function HomeScreen({ onSelectSession, onResume, todayStatus, str
     animation: mounted ? `fadeUp 0.7s ${delay}ms both` : 'none',
   });
 
+  const displayWindow = profile.practiceWindow === 'custom'
+    ? profile.customPracticeWindowLabel || 'Custom Practice Window'
+    : profile.practiceWindow.replace(/_/g, ' ');
+
   const mStatus = todayStatus['morning'];
   const nStatus = todayStatus['night'];
   const morningDone = mStatus === 'completed';
@@ -98,6 +106,11 @@ export default function HomeScreen({ onSelectSession, onResume, todayStatus, str
   const applySetting = <K extends keyof PersonalSettings>(key: K, value: PersonalSettings[K]) => {
     const next = updateSettings({ [key]: value } as Partial<PersonalSettings>);
     setPersonalSettings(next);
+  };
+
+  const applyProfile = <K extends keyof SadhanaProfile>(key: K, value: SadhanaProfile[K]) => {
+    const next = updateSadhanaProfile({ [key]: value } as Partial<SadhanaProfile>);
+    setProfile(next);
   };
 
   const handleInstallApp = async () => {
@@ -134,6 +147,7 @@ export default function HomeScreen({ onSelectSession, onResume, todayStatus, str
           <button
             onClick={() => {
               setPersonalSettings(getSettings());
+              setProfile(getSadhanaProfile());
               setShowSettingsModal(true);
             }}
             style={{
@@ -166,8 +180,11 @@ export default function HomeScreen({ onSelectSession, onResume, todayStatus, str
             <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 'clamp(2.2rem, 8vw, 3rem)', fontWeight: 300, color: 'var(--text-primary)', lineHeight: 1.05, letterSpacing: '-0.01em', margin: 0 }}>
               <em style={{ color: 'var(--gold-accent)', fontStyle: 'italic' }}>Kundalini</em> Sadhana
             </h1>
+            <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '0.95rem', color: 'var(--text-muted)', marginTop: '0.4rem' }}>
+              {profile.displayName}
+            </div>
             <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: '9px', color: 'var(--text-subtle)', letterSpacing: '0.3em', textTransform: 'uppercase', marginTop: '0.5rem' }}>
-              Daily Practice
+              {displayWindow}
             </div>
           </div>
 
@@ -219,23 +236,26 @@ export default function HomeScreen({ onSelectSession, onResume, todayStatus, str
             />
           </div>
 
-          {/* 28-day tracker — collapsible */}
+          {/* Practice journey */}
           <div style={{ ...anim(100), marginBottom: '1.35rem' }}>
             <button
               onClick={() => setShowTracker(s => !s)}
               style={{
-                width: '100%', padding: '10px 14px',
-                background: showTracker ? 'var(--card-bg-soft)' : 'var(--card-bg-soft)',
-                border: `1px solid ${showTracker ? 'var(--border-soft)' : 'var(--border-soft)'}`,
+                width: '100%',
+                padding: '10px 14px',
+                background: 'var(--card-bg-soft)',
+                border: '1px solid var(--border-soft)',
                 borderRadius: showTracker ? '14px 14px 0 0' : 14,
                 cursor: 'pointer',
-                display: 'flex', alignItems: 'center', gap: 8,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
                 transition: 'all 0.25s',
               }}
             >
-              <Calendar size={12} color={showTracker ? 'var(--gold-accent)' : 'var(--text-subtle)'} />
+              <Sparkles size={12} color={showTracker ? 'var(--gold-accent)' : 'var(--text-subtle)'} />
               <span style={{ fontFamily: "'Raleway', sans-serif", fontSize: '9px', letterSpacing: '0.22em', textTransform: 'uppercase', color: showTracker ? 'var(--gold-accent)' : 'var(--text-subtle)', flex: 1, textAlign: 'left' }}>
-                28-Day Practice Tracker
+                Practice Journey
               </span>
               <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ transform: showTracker ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', color: 'var(--text-subtle)' }}>
                 <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -243,14 +263,13 @@ export default function HomeScreen({ onSelectSession, onResume, todayStatus, str
             </button>
             {showTracker && (
               <div style={{
-                background: 'var(--card-bg-soft)',
-                border: '1px solid color-mix(in srgb, var(--border-soft) 75%, transparent)',
+                border: '1px solid var(--border-soft)',
                 borderTop: 'none',
                 borderRadius: '0 0 14px 14px',
-                padding: '1rem',
+                overflow: 'hidden',
                 animation: 'fadeIn 0.2s ease both',
               }}>
-                <DailyTracker />
+                <PracticeJourneyPanel />
               </div>
             )}
           </div>
@@ -332,7 +351,7 @@ export default function HomeScreen({ onSelectSession, onResume, todayStatus, str
 
       {showSettingsModal && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 55, background: 'var(--overlay-backdrop-strong)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.2rem', animation: 'fadeIn 0.2s ease both' }}>
-          <div style={{ width: '100%', maxWidth: 430, maxHeight: '88vh', overflowY: 'auto', background: 'var(--surface-bg)', border: '1px solid var(--surface-border)', borderRadius: 20, padding: '1.15rem' }}>
+          <div style={{ width: '100%', maxWidth: 460, maxHeight: '88vh', overflowY: 'auto', background: 'var(--surface-bg)', border: '1px solid var(--surface-border)', borderRadius: 20, padding: '1.15rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: 14 }}>
               <div style={{ flex: 1 }}>
                 <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: '8px', color: 'var(--gold-accent)', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 3 }}>Personal</div>
@@ -343,55 +362,157 @@ export default function HomeScreen({ onSelectSession, onResume, todayStatus, str
               </button>
             </div>
 
-            <SettingsRow label="Language">
-              <select value={personalSettings.language} onChange={e => applySetting('language', e.target.value as PersonalSettings['language'])} style={settingsSelectStyle}>
-                <option value="english">English</option>
-                <option value="hindi">Hindi</option>
-              </select>
-            </SettingsRow>
+            <SettingsSection label="Profile">
+              <SettingsRow label="Display Name">
+                <input
+                  value={profile.displayName}
+                  onChange={e => applyProfile('displayName', e.target.value)}
+                  style={settingsInputStyle}
+                />
+              </SettingsRow>
+              <SettingsRow label="Practice Window">
+                <select
+                  value={profile.practiceWindow}
+                  onChange={e => applyProfile('practiceWindow', e.target.value as SacredPracticeWindow)}
+                  style={settingsSelectStyle}
+                >
+                  <option value="brahma_muhurta">Brahma Muhurta</option>
+                  <option value="sunrise">Sunrise</option>
+                  <option value="morning">Morning</option>
+                  <option value="sunset">Sunset</option>
+                  <option value="evening">Evening</option>
+                  <option value="custom">Custom</option>
+                </select>
+              </SettingsRow>
+              {profile.practiceWindow === 'custom' && (
+                <SettingsRow label="Custom Label">
+                  <input
+                    value={profile.customPracticeWindowLabel}
+                    onChange={e => applyProfile('customPracticeWindowLabel', e.target.value)}
+                    style={settingsInputStyle}
+                    placeholder="e.g. After sunset"
+                  />
+                </SettingsRow>
+              )}
+            </SettingsSection>
 
-            <SettingsRow label="Theme">
-              <select value={personalSettings.themeMode} onChange={e => applySetting('themeMode', e.target.value as ThemeMode)} style={settingsSelectStyle}>
-                <option value="dark">Dark</option>
-                <option value="light">Light</option>
-                <option value="auto">Auto</option>
-              </select>
-            </SettingsRow>
+            <SettingsSection label="Session Rituals">
+              <SettingsRow label="Opening Ritual">
+                <input
+                  type="checkbox"
+                  checked={personalSettings.openingRitualEnabled}
+                  onChange={e => applySetting('openingRitualEnabled', e.target.checked)}
+                />
+              </SettingsRow>
+              <SettingsRow label="Mantra Display">
+                <select
+                  value={personalSettings.mantraDisplay}
+                  onChange={e => applySetting('mantraDisplay', e.target.value as MantraDisplayMode)}
+                  style={settingsSelectStyle}
+                >
+                  <option value="sanskrit">Sanskrit</option>
+                  <option value="sanskrit_translation">Sanskrit + Translation</option>
+                  <option value="silent">Silent</option>
+                </select>
+              </SettingsRow>
+              <SettingsRow label={`Bell Volume (${Math.round(personalSettings.bellVolume * 100)}%)`}>
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  value={Math.round(personalSettings.bellVolume * 100)}
+                  onChange={e => applySetting('bellVolume', Number(e.target.value) / 100)}
+                  className="vol-slider"
+                  style={{ width: 132 }}
+                />
+              </SettingsRow>
+              <SettingsRow label="Ambient Enabled">
+                <input type="checkbox" checked={personalSettings.ambientEnabled} onChange={e => applySetting('ambientEnabled', e.target.checked)} />
+              </SettingsRow>
+              <SettingsRow label={`Ambient Volume (${Math.round(personalSettings.ambientVolume * 100)}%)`}>
+                <input type="range" min={0} max={100} value={Math.round(personalSettings.ambientVolume * 100)} onChange={e => applySetting('ambientVolume', Number(e.target.value) / 100)} className="vol-slider" style={{ width: 132 }} />
+              </SettingsRow>
+            </SettingsSection>
 
-            <SettingsRow label="Ambient Enabled">
-              <input type="checkbox" checked={personalSettings.ambientEnabled} onChange={e => applySetting('ambientEnabled', e.target.checked)} />
-            </SettingsRow>
+            <SettingsSection label="Voice Preferences">
+              <SettingsRow label="Language">
+                <select value={personalSettings.language} onChange={e => applySetting('language', e.target.value as PersonalSettings['language'])} style={settingsSelectStyle}>
+                  <option value="english">English</option>
+                  <option value="hindi">Hindi</option>
+                </select>
+              </SettingsRow>
+              <SettingsRow label={`Voice Volume (${Math.round(personalSettings.voiceVolume * 100)}%)`}>
+                <input type="range" min={0} max={100} value={Math.round(personalSettings.voiceVolume * 100)} onChange={e => applySetting('voiceVolume', Number(e.target.value) / 100)} className="vol-slider" style={{ width: 132 }} />
+              </SettingsRow>
+              <SettingsRow label="Voice Preferences">
+                <button
+                  onClick={() => setShowVoicePicker(true)}
+                  style={smallActionButtonStyle}
+                >
+                  Open Voice Picker
+                </button>
+              </SettingsRow>
+            </SettingsSection>
 
-            <SettingsRow label={`Ambient Volume (${Math.round(personalSettings.ambientVolume * 100)}%)`}>
-              <input type="range" min={0} max={100} value={Math.round(personalSettings.ambientVolume * 100)} onChange={e => applySetting('ambientVolume', Number(e.target.value) / 100)} className="vol-slider" style={{ width: 132 }} />
-            </SettingsRow>
-
-            <SettingsRow label="Chakra Glow">
-              <select value={personalSettings.chakraGlowIntensity} onChange={e => applySetting('chakraGlowIntensity', e.target.value as PersonalSettings['chakraGlowIntensity'])} style={settingsSelectStyle}>
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-              </select>
-            </SettingsRow>
-
-            <SettingsRow label="Show Chakra Info">
-              <input type="checkbox" checked={personalSettings.showChakraInfo} onChange={e => applySetting('showChakraInfo', e.target.checked)} />
-            </SettingsRow>
-
-            <SettingsRow label="Show Body Map">
-              <input type="checkbox" checked={personalSettings.showBodyMap} onChange={e => applySetting('showBodyMap', e.target.checked)} />
-            </SettingsRow>
-
+            <SettingsSection label="Appearance">
+              <SettingsRow label="Theme">
+                <select value={personalSettings.themeMode} onChange={e => applySetting('themeMode', e.target.value as ThemeMode)} style={settingsSelectStyle}>
+                  <option value="dark">Dark</option>
+                  <option value="light">Light</option>
+                  <option value="auto">System</option>
+                </select>
+              </SettingsRow>
+              <SettingsRow label="Chakra Glow">
+                <select value={personalSettings.chakraGlowIntensity} onChange={e => applySetting('chakraGlowIntensity', e.target.value as PersonalSettings['chakraGlowIntensity'])} style={settingsSelectStyle}>
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                </select>
+              </SettingsRow>
+              <SettingsRow label="Show Chakra Info">
+                <input type="checkbox" checked={personalSettings.showChakraInfo} onChange={e => applySetting('showChakraInfo', e.target.checked)} />
+              </SettingsRow>
+              <SettingsRow label="Show Body Map">
+                <input type="checkbox" checked={personalSettings.showBodyMap} onChange={e => applySetting('showBodyMap', e.target.checked)} />
+              </SettingsRow>
+            </SettingsSection>
           </div>
         </div>
       )}
+
+      {showVoicePicker && (
+        <VoicePicker
+          onClose={() => setShowVoicePicker(false)}
+          guidanceMode={personalSettings.narrationMode}
+          onGuidanceModeChange={m => applySetting('narrationMode', m)}
+        />
+      )}
+    </div>
+  );
+}
+
+function SettingsSection({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div style={{
+      marginBottom: 14,
+      padding: '0.9rem',
+      borderRadius: 16,
+      background: 'var(--card-bg-soft)',
+      border: '1px solid var(--border-soft)',
+    }}>
+      <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: '8px', color: 'var(--gold-accent)', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 10 }}>
+        {label}
+      </div>
+      <div style={{ display: 'grid', gap: 8 }}>
+        {children}
+      </div>
     </div>
   );
 }
 
 function SettingsRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '10px 11px', borderRadius: 12, border: '1px solid var(--surface-border)', background: 'var(--field-bg)', marginBottom: 10 }}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '10px 11px', borderRadius: 12, border: '1px solid var(--surface-border)', background: 'var(--field-bg)' }}>
       <span style={{ fontFamily: "'Raleway', sans-serif", fontSize: '9px', color: 'var(--muted-text)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{label}</span>
       {children}
     </div>
@@ -567,4 +688,33 @@ const settingsSelectStyle: React.CSSProperties = {
   fontSize: '10px',
   padding: '6px 8px',
   outline: 'none',
+};
+
+const settingsInputStyle: React.CSSProperties = {
+  minWidth: 118,
+  borderRadius: 8,
+  border: '1px solid var(--field-border)',
+  background: 'var(--field-bg)',
+  color: 'var(--field-text)',
+  fontFamily: "'Raleway', sans-serif",
+  fontSize: '10px',
+  padding: '6px 8px',
+  outline: 'none',
+};
+
+const smallActionButtonStyle: React.CSSProperties = {
+  borderRadius: 8,
+  border: '1px solid var(--border-soft)',
+  background: 'var(--button-ghost-bg)',
+  cursor: 'pointer',
+  color: 'var(--gold-accent)',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  transition: 'all 0.2s',
+  padding: '6px 10px',
+  fontFamily: "'Raleway', sans-serif",
+  fontSize: '8px',
+  letterSpacing: '0.12em',
+  textTransform: 'uppercase',
 };

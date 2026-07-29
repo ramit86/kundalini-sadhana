@@ -11,7 +11,7 @@ interface TrackerStore {
   byDate: Record<string, DayStatus>;
 }
 
-interface TrackerDay {
+export interface TrackerDay {
   date: string;
   morning: SessionStatus;
   night: SessionStatus;
@@ -123,6 +123,24 @@ export function getStreaks(maxDays = 365): TrackerStreaks {
 export function getTrackerData(days = 28): { days: TrackerDay[]; streaks: TrackerStreaks } {
   return {
     days: getRecentDays(days),
+    streaks: getStreaks(),
+  };
+}
+
+export function getMonthTrackerData(year: number, monthIndex: number): { days: TrackerDay[]; streaks: TrackerStreaks } {
+  const store = loadStore();
+  const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+  const days = Array.from({ length: daysInMonth }, (_, dayIdx) => {
+    const date = `${year}-${String(monthIndex + 1).padStart(2, '0')}-${String(dayIdx + 1).padStart(2, '0')}`;
+    const status = store.byDate[date] ?? getDefaultDayStatus();
+    return {
+      date,
+      morning: status.morning,
+      night: status.night,
+    };
+  });
+  return {
+    days,
     streaks: getStreaks(),
   };
 }
