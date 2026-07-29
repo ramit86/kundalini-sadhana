@@ -1,0 +1,21 @@
+{
+  "timestamp": "2026-07-29T09:36:39.600Z",
+  "selectedVoiceId": "Fk9kto7gyTo4ezh3QRzb",
+  "model": "eleven_multilingual_v2",
+  "forceMode": false,
+  "generatedFiles": [],
+  "skippedFiles": [],
+  "failedFiles": [
+    {
+      "id": "opening_invocation",
+      "outputFilename": "opening_invocation.mp3",
+      "category": "rituals",
+      "outputPath": "/Users/elizabethmassey/Documents/kundalini-sadhana/public/audio/rituals/opening_invocation.mp3",
+      "error": "fetch failed"
+    }
+  ],
+  "charactersSubmitted": 0,
+  "outputPaths": [
+    "/Users/elizabethmassey/Documents/kundalini-sadhana/public/audio/rituals/opening_invocation.mp3"
+  ]
+}

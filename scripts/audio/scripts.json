@@ -1,0 +1,46 @@
+{
+  "scripts": [
+    {
+      "id": "opening_invocation",
+      "text": "Om. Asato ma sadgamaya. Tamaso ma jyotirgamaya. Mrityor ma amritam gamaya. Om shanti shanti shanti.",
+      "outputFilename": "opening_invocation.mp3",
+      "category": "rituals",
+      "language": "en",
+      "voiceSettings": {
+        "stability": 0.42,
+        "similarityBoost": 0.9,
+        "style": 0.12,
+        "useSpeakerBoost": true,
+        "speed": 0.95
+      }
+    },
+    {
+      "id": "first_practice_announcement",
+      "text": "The first practice begins now. Sit comfortably, lengthen the spine, and let the breath settle into its natural rhythm.",
+      "outputFilename": "first_practice_announcement.mp3",
+      "category": "announcements",
+      "language": "en",
+      "voiceSettings": {
+        "stability": 0.5,
+        "similarityBoost": 0.88,
+        "style": 0.1,
+        "useSpeakerBoost": true,
+        "speed": 0.98
+      }
+    },
+    {
+      "id": "preparation_guidance",
+      "text": "Sit comfortably. Relax the shoulders. Allow three natural breaths, and arrive fully in the practice.",
+      "outputFilename": "preparation_guidance.mp3",
+      "category": "practice",
+      "language": "en",
+      "voiceSettings": {
+        "stability": 0.48,
+        "similarityBoost": 0.87,
+        "style": 0.08,
+        "useSpeakerBoost": true,
+        "speed": 0.96
+      }
+    }
+  ]
+}

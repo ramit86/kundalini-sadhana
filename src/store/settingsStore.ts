@@ -7,15 +7,20 @@ export const SETTINGS_CHANGED_EVENT = 'ks-settings-changed';
 export interface PersonalSettings {
   language: AppLanguage;
   themeMode: ThemeMode;
+  /** @deprecated Hidden legacy setting retained for backward compatibility. */
   narrationMode: NarrationMode;
+  /** @deprecated Hidden legacy setting retained for backward compatibility. */
   voiceEnabled: boolean;
   ambientEnabled: boolean;
+  /** @deprecated Hidden legacy setting retained for backward compatibility. */
   voiceVolume: number;
   ambientVolume: number;
   chakraGlowIntensity: ChakraGlowIntensity;
   showChakraInfo: boolean;
   showBodyMap: boolean;
   remindersEnabled: boolean;
+  /** @deprecated Hidden legacy setting retained for backward compatibility. */
+  openingInvocationEnabled: boolean;
 }
 
 const STORAGE_KEY = 'ks_personal_settings_v1';
@@ -32,6 +37,7 @@ export const DEFAULT_SETTINGS: PersonalSettings = {
   showChakraInfo: true,
   showBodyMap: true,
   remindersEnabled: false,
+  openingInvocationEnabled: true,
 };
 
 function clamp01(value: number): number {
@@ -62,6 +68,7 @@ function sanitizeSettings(input: Partial<PersonalSettings> | null | undefined): 
     showChakraInfo: typeof safe.showChakraInfo === 'boolean' ? safe.showChakraInfo : DEFAULT_SETTINGS.showChakraInfo,
     showBodyMap: typeof safe.showBodyMap === 'boolean' ? safe.showBodyMap : DEFAULT_SETTINGS.showBodyMap,
     remindersEnabled: typeof safe.remindersEnabled === 'boolean' ? safe.remindersEnabled : DEFAULT_SETTINGS.remindersEnabled,
+    openingInvocationEnabled: typeof safe.openingInvocationEnabled === 'boolean' ? safe.openingInvocationEnabled : DEFAULT_SETTINGS.openingInvocationEnabled,
   };
 }
 

@@ -267,7 +267,7 @@ export default function HomeScreen({ onSelectSession, onResume, todayStatus, str
                 <div style={{ flex: 1 }}>
                   <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: '9px', color: 'var(--gold-accent)', letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 1 }}>Resume</div>
                   <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '0.95rem', color: 'var(--text-muted)' }}>
-                    {resumeSession.label} · Practice {saved!.practiceIndex + 1} of {resumeSession.practices.length}
+                    {resumeSession.label} · Practice {(saved!.resumePracticeIndex ?? saved!.practiceIndex) + 1} of {resumeSession.practices.length}
                   </div>
                 </div>
                 <span style={{ color: 'var(--text-subtle)', fontSize: 20 }}>›</span>
@@ -358,24 +358,8 @@ export default function HomeScreen({ onSelectSession, onResume, todayStatus, str
               </select>
             </SettingsRow>
 
-            <SettingsRow label="Narration Mode">
-              <select value={personalSettings.narrationMode} onChange={e => applySetting('narrationMode', e.target.value as PersonalSettings['narrationMode'])} style={settingsSelectStyle}>
-                <option value="full">Full</option>
-                <option value="minimal">Minimal</option>
-                <option value="silent">Silent</option>
-              </select>
-            </SettingsRow>
-
-            <SettingsRow label="Voice Enabled">
-              <input type="checkbox" checked={personalSettings.voiceEnabled} onChange={e => applySetting('voiceEnabled', e.target.checked)} />
-            </SettingsRow>
-
             <SettingsRow label="Ambient Enabled">
               <input type="checkbox" checked={personalSettings.ambientEnabled} onChange={e => applySetting('ambientEnabled', e.target.checked)} />
-            </SettingsRow>
-
-            <SettingsRow label={`Voice Volume (${Math.round(personalSettings.voiceVolume * 100)}%)`}>
-              <input type="range" min={0} max={100} value={Math.round(personalSettings.voiceVolume * 100)} onChange={e => applySetting('voiceVolume', Number(e.target.value) / 100)} className="vol-slider" style={{ width: 132 }} />
             </SettingsRow>
 
             <SettingsRow label={`Ambient Volume (${Math.round(personalSettings.ambientVolume * 100)}%)`}>
@@ -398,9 +382,6 @@ export default function HomeScreen({ onSelectSession, onResume, todayStatus, str
               <input type="checkbox" checked={personalSettings.showBodyMap} onChange={e => applySetting('showBodyMap', e.target.checked)} />
             </SettingsRow>
 
-            <SettingsRow label="Reminders Enabled">
-              <input type="checkbox" checked={personalSettings.remindersEnabled} onChange={e => applySetting('remindersEnabled', e.target.checked)} />
-            </SettingsRow>
           </div>
         </div>
       )}

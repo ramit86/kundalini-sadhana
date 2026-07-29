@@ -119,12 +119,13 @@ export default function App() {
     const s = SESSIONS[saved.sessionKey as 'morning' | 'night'];
     if (!s) return;
     setSession(s);
-    setInitPracticeIndex(saved.practiceIndex);
-    setInitTimeRemaining(saved.timeRemaining);
+    setInitPracticeIndex(saved.resumePracticeIndex ?? saved.practiceIndex);
+    setInitTimeRemaining(saved.resumeTimeRemaining ?? saved.timeRemaining);
     setScreen('active');
   };
 
   const handleBegin = () => {
+    clearProgress();
     setInitPracticeIndex(0);
     setInitTimeRemaining(undefined);
     setScreen('active');
@@ -152,6 +153,7 @@ export default function App() {
   const handleRestartSession = async (key: 'morning' | 'night') => {
     restartSession(key);
     refreshTodayStatus();
+    clearProgress();
     handleSelectSession(key);
   };
 

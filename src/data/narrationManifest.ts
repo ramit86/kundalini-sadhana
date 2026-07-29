@@ -21,6 +21,10 @@ const BASE_PATH = '/audio/voice/english' as const;
 const sectionFiles = (prefix: string, count: number): string[] =>
   Array.from({ length: count }, (_, i) => `${BASE_PATH}/${prefix}${String(i + 1).padStart(2, '0')}.mp3`);
 
+/**
+ * @deprecated Retained for archived narration asset mapping only.
+ * Runtime no longer depends on guided narration.
+ */
 export const ENGLISH_NARRATION_MANIFEST: NarrationManifest = {
   language: 'english',
   basePath: BASE_PATH,
@@ -37,4 +41,3 @@ export const ENGLISH_NARRATION_MANIFEST: NarrationManifest = {
     closing: sectionFiles('closing', 4),
   },
 };
-

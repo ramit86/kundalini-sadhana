@@ -35,6 +35,8 @@ export default function TransportControls({
 
       <button
         onClick={onTogglePlayPause}
+        aria-label={isRunning ? 'Pause practice' : 'Resume practice'}
+        title={isRunning ? 'Pause practice' : 'Resume practice'}
         style={{
           width: 70, height: 70, borderRadius: '50%',
           background: isRunning

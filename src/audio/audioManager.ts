@@ -1,4 +1,5 @@
 import { ChakraKey } from '../data/sessions';
+import { AUDIO_MANIFEST } from '../data/audioManifest';
 
 let audioCtx: AudioContext | null = null;
 
@@ -12,6 +13,12 @@ interface AmbientTrackState {
 let ambientTrack: AmbientTrackState | null = null;
 let ambientFileMissing = false;
 let bellBusyUntil = 0;
+let oneShotAudio: HTMLAudioElement | null = null;
+let oneShotCancel: (() => void) | null = null;
+
+const AMBIENT_FADE_MS = 1250;
+const BELL_PATH = '/audio/rituals/meditation-bell.mp3';
+const BELL_DURATION_MS = 3600;
 
 function devLog(...args: unknown[]) {
   void args;
@@ -60,51 +67,65 @@ export function getBellBusyMsRemaining(): number {
   return Math.max(0, bellBusyUntil - Date.now());
 }
 
+export function stopOneShotAudio() {
+  const cancel = oneShotCancel;
+  oneShotCancel = null;
+  cancel?.();
+  if (oneShotAudio) {
+    try {
+      oneShotAudio.pause();
+      oneShotAudio.currentTime = 0;
+      oneShotAudio.src = '';
+    } catch {
+      // ignore stop errors
+    }
+    oneShotAudio = null;
+  }
+}
+
+export async function playOneShotAudio(path: string, volume = 1): Promise<boolean> {
+  stopOneShotAudio();
+
+  return new Promise(resolve => {
+    const el = new Audio(path);
+    oneShotAudio = el;
+    let finished = false;
+
+    const done = (ok: boolean) => {
+      if (finished) return;
+      finished = true;
+      el.onended = null;
+      el.onerror = null;
+      try {
+        el.pause();
+      } catch {
+        // ignore stop errors
+      }
+      if (oneShotAudio === el) oneShotAudio = null;
+      if (oneShotCancel === cancel) oneShotCancel = null;
+      resolve(ok);
+    };
+    const cancel = () => done(false);
+    oneShotCancel = cancel;
+
+    el.preload = 'auto';
+    el.loop = false;
+    el.muted = false;
+    el.volume = clamp01(volume);
+    el.setAttribute('playsinline', 'true');
+    el.onended = () => done(true);
+    el.onerror = () => done(false);
+    el.play().catch(() => done(false));
+  });
+}
+
 // ── Bell ────────────────────────────────────────────────
 export function ringBell(times = 1) {
   try {
-    const ctx = getAudioCtx();
-    if (ctx.state === 'suspended') ctx.resume();
-    const totalSec = (Math.max(1, times) - 1) * 1.6 + 3.6;
-    bellBusyUntil = Date.now() + totalSec * 1000;
-
-    const playTone = (delay: number) => {
-      const master = ctx.createGain();
-      master.gain.setValueAtTime(0, ctx.currentTime + delay);
-      master.gain.linearRampToValueAtTime(0.28, ctx.currentTime + delay + 0.03);
-      master.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 3.5);
-      master.connect(ctx.destination);
-
-      // Fundamental
-      const o1 = ctx.createOscillator();
-      const g1 = ctx.createGain();
-      o1.type = 'sine'; o1.frequency.value = 432;
-      o1.frequency.exponentialRampToValueAtTime(360, ctx.currentTime + delay + 2.2);
-      g1.gain.value = 0.7;
-      o1.connect(g1); g1.connect(master);
-
-      // 2nd partial — richness
-      const o2 = ctx.createOscillator();
-      const g2 = ctx.createGain();
-      o2.type = 'sine'; o2.frequency.value = 648;
-      o2.frequency.exponentialRampToValueAtTime(540, ctx.currentTime + delay + 1.8);
-      g2.gain.value = 0.25;
-      o2.connect(g2); g2.connect(master);
-
-      // 3rd partial — shimmer
-      const o3 = ctx.createOscillator();
-      const g3 = ctx.createGain();
-      o3.type = 'sine'; o3.frequency.value = 864;
-      g3.gain.value = 0.08;
-      o3.connect(g3); g3.connect(master);
-
-      [o1, o2, o3].forEach(o => {
-        o.start(ctx.currentTime + delay);
-        o.stop(ctx.currentTime + delay + 3.6);
-      });
-    };
-
-    for (let i = 0; i < times; i++) playTone(i * 1.6);
+    void times;
+    bellBusyUntil = Date.now() + BELL_DURATION_MS;
+    stopOneShotAudio();
+    void playOneShotAudio(BELL_PATH, 0.92);
   } catch (_) {}
 }
 
@@ -119,7 +140,7 @@ export async function startAmbient(chakra: ChakraKey, volume: number): Promise<v
       devLog('audio context state', ctx.state);
     }
 
-    const path = mapChakraToMantraPath(chakra);
+    const path = mapChakraToAmbientPath(chakra);
     const target = clamp01(volume);
 
     if (ambientTrack && ambientTrack.path === path) {
@@ -163,7 +184,7 @@ export async function startAmbient(chakra: ChakraKey, volume: number): Promise<v
     const previous = ambientTrack?.element ?? null;
     ambientTrack = { element: next, path, chakra, targetVolume: target };
     ambientFileMissing = false;
-    fadeVolume(next, 0, target, 700);
+    fadeVolume(next, 0, target, AMBIENT_FADE_MS);
 
     if (previous) {
       const from = previous.volume;
@@ -182,18 +203,21 @@ export async function startAmbient(chakra: ChakraKey, volume: number): Promise<v
   }
 }
 
-export function stopAmbient(fade = true) {
-  if (!ambientTrack) return;
+export function stopAmbient(fade = true): Promise<void> {
+  if (!ambientTrack) return Promise.resolve();
   try {
     const current = ambientTrack.element;
     ambientTrack = null;
     if (fade) {
-      fadeVolume(current, current.volume, 0, 450, () => {
-        try {
-          current.pause();
-          current.currentTime = 0;
-          current.src = '';
-        } catch (_) {}
+      return new Promise(resolve => {
+        fadeVolume(current, current.volume, 0, AMBIENT_FADE_MS, () => {
+          try {
+            current.pause();
+            current.currentTime = 0;
+            current.src = '';
+          } catch (_) {}
+          resolve();
+        });
       });
     } else {
       current.pause();
@@ -204,6 +228,7 @@ export function stopAmbient(fade = true) {
   } catch (error) {
     devLog('ambient failed with reason', error);
   }
+  return Promise.resolve();
 }
 
 export function setAmbientVolume(vol: number) {
@@ -218,15 +243,18 @@ function clamp01(v: number): number {
   return Math.max(0, Math.min(1, v));
 }
 
-function mapChakraToMantraPath(chakra: ChakraKey): string {
-  if (chakra === 'Mooladhara') return '/audio/mantras/mooladhara-lam.mp3';
-  if (chakra === 'Swadhisthana') return '/audio/mantras/swadhisthana-vam.mp3';
-  if (chakra === 'Manipura') return '/audio/mantras/manipura-ram.mp3';
-  if (chakra === 'Anahata') return '/audio/mantras/anahata-yam.mp3';
-  if (chakra === 'Vishuddhi') return '/audio/mantras/vishuddhi-ham.mp3';
-  if (chakra === 'Ajna') return '/audio/mantras/ajna-om.mp3';
-  if (chakra === 'Bindu') return '/audio/mantras/bindu-om.mp3';
-  return '/audio/mantras/integration-om.mp3';
+function mapChakraToAmbientPath(chakra: ChakraKey): string {
+  const track = AUDIO_MANIFEST.ambient[
+    chakra === 'Mooladhara' ? 'mooladhara'
+      : chakra === 'Swadhisthana' ? 'swadhisthana'
+      : chakra === 'Manipura' ? 'manipura'
+      : chakra === 'Anahata' ? 'anahata'
+      : chakra === 'Vishuddhi' ? 'vishuddhi'
+      : chakra === 'Ajna' ? 'ajna'
+      : chakra === 'Bindu' ? 'bindu'
+      : 'integration'
+  ]?.[0];
+  return track?.path ?? '/audio/ambient/integration/base.mp3';
 }
 
 function fadeVolume(
