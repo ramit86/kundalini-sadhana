@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { CSSProperties, ReactNode, useEffect, useState } from 'react';
 import { Session, CHAKRA_MAP } from '../../data/sessions';
 import TimerRing from '../../components/TimerRing';
 import ChakraDots from '../../components/ChakraDots';
@@ -6,6 +6,7 @@ import InstructionBox from '../../components/InstructionBox';
 import ChakraOverlay from '../../components/ChakraOverlay';
 import { CHAKRA_INFO } from '../../data/chakraInfo';
 import { useSessionPlayback } from './useSessionPlayback';
+import JourneyTimeline from './JourneyTimeline';
 import SessionBackdrop from './SessionBackdrop';
 import SessionHeader from './SessionHeader';
 import ChakraBanner from './ChakraBanner';
@@ -13,11 +14,14 @@ import ChakraReflectionPanel from './ChakraReflectionPanel';
 import ChakraBodyMap from './ChakraBodyMap';
 import AudioControlsBar from './AudioControlsBar';
 import TransportControls from './TransportControls';
+import { getSettings, MantraDisplayMode } from '../../store/settingsStore';
+import { SessionLifecycle } from '../../store/sessionStore';
 
 interface Props {
   session: Session;
   initialPracticeIndex?: number;
   initialTimeRemaining?: number;
+  sessionLifecycle: SessionLifecycle;
   onEnd: (practicesCompleted?: number) => void;
   onGoHome: () => void;
   onCancelToday: () => void;
@@ -27,12 +31,14 @@ export default function ActiveScreen({
   session,
   initialPracticeIndex = 0,
   initialTimeRemaining,
+  sessionLifecycle,
   onEnd,
   onGoHome,
   onCancelToday,
 }: Props) {
   const [showChakraOverlay, setShowChakraOverlay] = useState(false);
   const [chakraPanelOpen, setChakraPanelOpen] = useState(false);
+  const ritualSettings = getSettings();
   const [viewportWidth, setViewportWidth] = useState(
     typeof window !== 'undefined' ? window.innerWidth : 0
   );
@@ -54,6 +60,12 @@ export default function ActiveScreen({
     wakeLockMode,
     showWakeLockLimitedToast,
     audioDebug,
+    transitionDebug,
+    sessionPhase,
+    isOpening,
+    isClosing,
+    practiceStates,
+    closingSilentRemaining,
     resetControlsTimer,
     togglePlayPause,
     handleRestart,
@@ -62,6 +74,10 @@ export default function ActiveScreen({
     handleCancelToday,
     handleToggleAmbient,
     handleVolumeChange,
+    handleOpenPractice,
+    skipInvocation,
+    finishSilentSitting,
+    completeSession,
   } = useSessionPlayback({
     session,
     initialPracticeIndex,
@@ -70,6 +86,7 @@ export default function ActiveScreen({
     onEnd,
     onGoHome,
     onCancelToday,
+    sessionLifecycle,
   });
 
   const cc = CHAKRA_MAP[practice?.chakra] ?? CHAKRA_MAP['Preparation'];
@@ -86,6 +103,30 @@ export default function ActiveScreen({
     if (viewportWidth >= 960) setChakraPanelOpen(true);
     else setChakraPanelOpen(false);
   }, [practiceIndex, viewportWidth]);
+
+  if (isOpening) {
+    return (
+      <OpeningRitualScreen
+        isMobile={isMobile}
+        phase={sessionPhase}
+        mantraDisplay={ritualSettings.mantraDisplay}
+        onSkip={skipInvocation}
+      />
+    );
+  }
+
+  if (isClosing) {
+    return (
+      <ClosingRitualScreen
+        isMobile={isMobile}
+        phase={sessionPhase}
+        message={session.end}
+        secondsRemaining={closingSilentRemaining}
+        onEndSitting={finishSilentSitting}
+        onComplete={completeSession}
+      />
+    );
+  }
 
   const totalDone = session.practices.slice(0, practiceIndex).reduce((s, p) => s + p.duration, 0);
   const totalAll = session.practices.reduce((s, p) => s + p.duration, 0);
@@ -132,6 +173,7 @@ export default function ActiveScreen({
         showControls={showControls}
         wakeLockMode={wakeLockMode}
         audioDebug={audioDebug}
+        transitionDebug={transitionDebug}
         onGoHome={handleGoHome}
         onCancelToday={handleCancelToday}
       />
@@ -164,6 +206,14 @@ export default function ActiveScreen({
         <ChakraDots practices={session.practices} currentIndex={practiceIndex} />
       </div>
 
+      <JourneyTimeline
+        session={session}
+        practiceIndex={practiceIndex}
+        practiceStates={practiceStates}
+        onOpenPractice={handleOpenPractice}
+        isMobile={isMobile}
+      />
+
       {/* Main body */}
       <div style={{
         flex: 1, display: 'flex', flexDirection: 'column',
@@ -189,12 +239,12 @@ export default function ActiveScreen({
             display: 'flex',
             flexDirection: 'column',
             borderRadius: 20,
-            background: 'var(--card-bg-alt)',
-            border: '1px solid var(--border-soft)',
-            boxShadow: 'var(--shadow-soft)',
+            background: 'color-mix(in srgb, var(--card-bg-alt) 52%, transparent)',
+            border: '1px solid transparent',
+            boxShadow: 'none',
             padding: isMobile ? '0.72rem' : '1rem 1.08rem',
             overflow: 'hidden',
-            backdropFilter: 'blur(5px)',
+            backdropFilter: 'blur(3px)',
             width: '100%',
           }}>
             <ChakraBanner
@@ -213,8 +263,8 @@ export default function ActiveScreen({
                   width: '100%',
                   maxWidth: 180,
                   borderRadius: 16,
-                  border: '1px solid color-mix(in srgb, var(--border-soft) 70%, transparent)',
-                  background: 'var(--card-bg-soft)',
+                  border: '1px solid transparent',
+                  background: 'transparent',
                   padding: '0.4rem',
                 }}>
                   <ChakraBodyMap activeChakra={practice?.chakra ?? 'Preparation'} compact pulse={practiceTransition} />
@@ -272,8 +322,8 @@ export default function ActiveScreen({
                   minHeight: 0,
                   width: '100%',
                   borderRadius: 14,
-                  border: '1px solid color-mix(in srgb, var(--border-soft) 70%, transparent)',
-                  background: 'var(--card-bg-soft)',
+                  border: '1px solid transparent',
+                  background: 'color-mix(in srgb, var(--card-bg-soft) 58%, transparent)',
                   padding: isMobile ? '0.66rem' : '0.9rem',
                   animation: 'fadeUp 0.5s 0.1s ease both',
                   overflow: 'hidden',
@@ -296,8 +346,8 @@ export default function ActiveScreen({
           {showDesktopPlaceholder && (
             <div style={{
               borderRadius: 20,
-              border: '1px solid color-mix(in srgb, var(--border-soft) 70%, transparent)',
-              background: 'var(--card-bg-soft)',
+              border: '1px solid transparent',
+              background: 'color-mix(in srgb, var(--card-bg-soft) 46%, transparent)',
               position: 'relative',
               overflow: 'hidden',
               minHeight: 0,
@@ -343,3 +393,233 @@ export default function ActiveScreen({
     </div>
   );
 }
+
+function RitualShell({
+  children,
+  isMobile,
+}: {
+  children: ReactNode;
+  isMobile: boolean;
+}) {
+  return (
+    <div style={{
+      width: '100%',
+      height: '100%',
+      minHeight: '100vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      overflow: 'hidden',
+      position: 'relative',
+      padding: isMobile ? '1.4rem' : '2.4rem',
+      background: 'radial-gradient(circle at 50% 38%, rgba(200,169,110,0.09), transparent 32%), linear-gradient(180deg, #0c0906 0%, #080706 100%)',
+      color: '#EDE5DA',
+    }}>
+      <div style={{
+        position: 'absolute',
+        width: isMobile ? 280 : 430,
+        height: isMobile ? 280 : 430,
+        borderRadius: '50%',
+        border: '1px solid rgba(200,169,110,0.08)',
+        boxShadow: '0 0 90px rgba(200,169,110,0.05)',
+        animation: 'breathe-slow 12s ease-in-out infinite',
+      }} />
+      <div style={{
+        width: '100%',
+        maxWidth: 580,
+        position: 'relative',
+        zIndex: 1,
+        textAlign: 'center',
+        animation: 'fadeUp 1.2s ease both',
+      }}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function OpeningRitualScreen({
+  isMobile,
+  phase,
+  mantraDisplay,
+  onSkip,
+}: {
+  isMobile: boolean;
+  phase: string;
+  mantraDisplay: MantraDisplayMode;
+  onSkip: () => void;
+}) {
+  const isInvocation = phase === 'opening_invocation';
+  const showTranslation = mantraDisplay === 'sanskrit_translation';
+  const showMantra = mantraDisplay !== 'silent';
+  return (
+    <RitualShell isMobile={isMobile}>
+      <div style={{
+        fontFamily: "'Raleway', sans-serif",
+        fontSize: '8px',
+        color: 'rgba(200,169,110,0.72)',
+        letterSpacing: '0.28em',
+        textTransform: 'uppercase',
+        marginBottom: isMobile ? 22 : 30,
+      }}>
+        {isInvocation ? 'Opening Mantra' : 'Enter the practice'}
+      </div>
+      <div style={{
+        fontFamily: "'Cormorant Garamond', serif",
+        fontSize: isMobile ? '1.72rem' : '2.25rem',
+        color: '#F0E8DC',
+        lineHeight: 1.52,
+        whiteSpace: 'pre-line',
+        textShadow: '0 0 42px rgba(200,169,110,0.12)',
+        opacity: isInvocation ? 1 : 0.58,
+        transition: 'opacity 1.2s ease',
+      }}>
+        {showMantra
+          ? 'ॐ असतो मा सद्गमय ।\nतमसो मा ज्योतिर्गमय ।\nमृत्योर्मा अमृतं गमय ।\nॐ शान्तिः शान्तिः शान्तिः ॥'
+          : 'ॐ'}
+      </div>
+      <div style={{
+        width: 32,
+        height: 1,
+        margin: '22px auto',
+        background: 'rgba(200,169,110,0.32)',
+        opacity: showMantra ? 1 : 0.18,
+      }} />
+      {showTranslation && (
+        <div style={{
+          fontFamily: "'Cormorant Garamond', serif",
+          fontSize: isMobile ? '0.98rem' : '1.08rem',
+          color: 'rgba(237,229,218,0.54)',
+          lineHeight: 1.8,
+          whiteSpace: 'pre-line',
+          fontStyle: 'italic',
+        }}>
+          {'Lead me from the unreal to the real.\nLead me from darkness to light.\nLead me from mortality to immortality.\nOm, peace, peace, peace.'}
+        </div>
+      )}
+      <button
+        onClick={onSkip}
+        style={{
+          marginTop: isMobile ? 28 : 38,
+          padding: '7px 10px',
+          border: 0,
+          background: 'transparent',
+          color: 'rgba(237,229,218,0.32)',
+          fontFamily: "'Raleway', sans-serif",
+          fontSize: '7px',
+          letterSpacing: '0.18em',
+          textTransform: 'uppercase',
+          cursor: 'pointer',
+        }}
+      >
+        Skip invocation
+      </button>
+    </RitualShell>
+  );
+}
+
+function ClosingRitualScreen({
+  isMobile,
+  phase,
+  message,
+  secondsRemaining,
+  onEndSitting,
+  onComplete,
+}: {
+  isMobile: boolean;
+  phase: string;
+  message: string;
+  secondsRemaining: number;
+  onEndSitting: () => void;
+  onComplete: () => void;
+}) {
+  const isSitting = phase === 'closing_sitting';
+  const isComplete = phase === 'closing_complete';
+  const showClosingMessage = phase === 'closing_message';
+  const title = isComplete
+    ? 'The practice is complete'
+    : isSitting
+      ? 'Remain in stillness'
+      : phase === 'closing_message'
+        ? 'Carry the practice gently'
+        : 'Let the practice settle';
+
+  return (
+    <RitualShell isMobile={isMobile}>
+      <div style={{
+        fontFamily: "'Cormorant Garamond', serif",
+        fontSize: isMobile ? '2.8rem' : '3.5rem',
+        color: 'rgba(200,169,110,0.78)',
+        lineHeight: 1,
+        marginBottom: 24,
+        textShadow: '0 0 48px rgba(200,169,110,0.2)',
+      }}>
+        ॐ
+      </div>
+      <div style={{
+        fontFamily: "'Cormorant Garamond', serif",
+        fontSize: isMobile ? '1.75rem' : '2.2rem',
+        fontWeight: 300,
+        marginBottom: 16,
+      }}>
+        {title}
+      </div>
+      <div style={{
+        maxWidth: 430,
+        margin: '0 auto',
+        fontFamily: "'Cormorant Garamond', serif",
+        fontSize: isMobile ? '1rem' : '1.12rem',
+        lineHeight: 1.8,
+        color: 'rgba(237,229,218,0.55)',
+        whiteSpace: 'pre-line',
+        fontStyle: 'italic',
+        opacity: showClosingMessage ? 1 : 0,
+        transition: 'opacity 1s ease',
+      }}>
+        {showClosingMessage ? message : '\u00a0'}
+      </div>
+
+      {isSitting && (
+        <>
+          <div style={{
+            marginTop: 28,
+            fontFamily: "'Raleway', sans-serif",
+            fontSize: '8px',
+            letterSpacing: '0.22em',
+            textTransform: 'uppercase',
+            color: 'rgba(200,169,110,0.55)',
+          }}>
+            {secondsRemaining} seconds of silence
+          </div>
+          <button onClick={onEndSitting} style={quietRitualButtonStyle}>
+            End silent sitting
+          </button>
+        </>
+      )}
+
+      {isComplete && (
+        <button onClick={onComplete} style={{
+          ...quietRitualButtonStyle,
+          color: 'rgba(237,229,218,0.78)',
+          borderColor: 'rgba(200,169,110,0.22)',
+        }}>
+          Complete session
+        </button>
+      )}
+    </RitualShell>
+  );
+}
+
+const quietRitualButtonStyle: CSSProperties = {
+  marginTop: 28,
+  padding: '9px 14px',
+  borderRadius: 18,
+  border: '1px solid rgba(200,169,110,0.12)',
+  background: 'transparent',
+  color: 'rgba(237,229,218,0.4)',
+  fontFamily: "'Raleway', sans-serif",
+  fontSize: '7px',
+  letterSpacing: '0.18em',
+  textTransform: 'uppercase',
+  cursor: 'pointer',
+};

@@ -4,8 +4,17 @@ import OverviewScreen from './screens/OverviewScreen';
 import ActiveScreen from './screens/ActiveScreen';
 import EndScreen from './screens/EndScreen';
 import AdminScreen from './screens/AdminScreen';
+import KnowledgeScreen from './knowledge/screens/KnowledgeScreen';
 import { SESSIONS, Session } from './data/sessions';
-import { loadProgress, clearProgress } from './store/sessionStore';
+import {
+  clearProgress,
+  createSessionLifecycle,
+  invalidateActiveSessionLifecycle,
+  loadProgress,
+  setActiveSessionLifecycle,
+  SessionLifecycle,
+} from './store/sessionStore';
+import { unlockAudio } from './audio/audioManager';
 import { getSettings, SETTINGS_CHANGED_EVENT, ThemeMode } from './store/settingsStore';
 import {
   recordCompletion,
@@ -15,6 +24,7 @@ import {
   getStreaks,
   TodayStatusMap,
 } from './lib/tracker';
+import { recordSessionHistory } from './store/sessionHistoryStore';
 
 function unlockAudioSafe() {
   try {
@@ -23,7 +33,7 @@ function unlockAudioSafe() {
   } catch (_) {}
 }
 
-type Screen = 'home' | 'overview' | 'active' | 'end' | 'admin';
+type Screen = 'home' | 'overview' | 'knowledge' | 'active' | 'end' | 'admin';
 type ResolvedTheme = 'dark' | 'light';
 
 function resolveTheme(themeMode: ThemeMode, prefersDark: boolean): ResolvedTheme {
@@ -45,6 +55,7 @@ function applyTheme(mode: ResolvedTheme) {
 export default function App() {
   const [screen, setScreen] = useState<Screen>('home');
   const [session, setSession] = useState<Session | null>(null);
+  const [sessionLifecycle, setSessionLifecycle] = useState<SessionLifecycle | null>(null);
   const [initPracticeIndex, setInitPracticeIndex] = useState(0);
   const [initTimeRemaining, setInitTimeRemaining] = useState<number | undefined>(undefined);
   const [endStats, setEndStats] = useState({ practices: 0, minutes: 0 });
@@ -113,18 +124,33 @@ export default function App() {
     setScreen('overview');
   };
 
+  const handleOpenKnowledge = () => {
+    setScreen('knowledge');
+  };
+
   const handleResume = () => {
     const saved = loadProgress();
     if (!saved) return;
     const s = SESSIONS[saved.sessionKey as 'morning' | 'night'];
     if (!s) return;
+    void unlockAudio({ ambientChakra: s.practices[saved.resumePracticeIndex ?? saved.practiceIndex]?.chakra });
+    const lifecycle = saved.sessionId && saved.sessionStartedAt
+      ? { sessionId: saved.sessionId, sessionStartedAt: saved.sessionStartedAt }
+      : createSessionLifecycle();
+    setSessionLifecycle(lifecycle);
+    setActiveSessionLifecycle(lifecycle);
     setSession(s);
-    setInitPracticeIndex(saved.practiceIndex);
-    setInitTimeRemaining(saved.timeRemaining);
+    setInitPracticeIndex(saved.resumePracticeIndex ?? saved.practiceIndex);
+    setInitTimeRemaining(saved.resumeTimeRemaining ?? saved.timeRemaining);
     setScreen('active');
   };
 
   const handleBegin = () => {
+    void unlockAudio({ ambientChakra: session?.practices[0]?.chakra });
+    const lifecycle = createSessionLifecycle();
+    setSessionLifecycle(lifecycle);
+    setActiveSessionLifecycle(lifecycle);
+    clearProgress();
     setInitPracticeIndex(0);
     setInitTimeRemaining(undefined);
     setScreen('active');
@@ -136,8 +162,18 @@ export default function App() {
       const practiced = practicesCompleted ?? session.practices.length;
       setEndStats({ practices: practiced, minutes: totalMins });
       recordCompletion(session.key);
+      recordSessionHistory({
+        sessionKey: session.key,
+        outcome: 'completed',
+        completedAt: new Date().toISOString(),
+        durationMinutes: totalMins,
+        practiceCount: practiced,
+        sessionLabel: session.label,
+      });
       refreshTodayStatus();
     }
+    invalidateActiveSessionLifecycle();
+    setSessionLifecycle(null);
     clearProgress();
     setScreen('end');
   };
@@ -145,6 +181,8 @@ export default function App() {
   const handleCancelSession = async (key: 'morning' | 'night') => {
     cancelSession(key);
     refreshTodayStatus();
+    invalidateActiveSessionLifecycle();
+    setSessionLifecycle(null);
     clearProgress();
     setScreen('home');
   };
@@ -152,6 +190,9 @@ export default function App() {
   const handleRestartSession = async (key: 'morning' | 'night') => {
     restartSession(key);
     refreshTodayStatus();
+    invalidateActiveSessionLifecycle();
+    setSessionLifecycle(null);
+    clearProgress();
     handleSelectSession(key);
   };
 
@@ -172,6 +213,7 @@ export default function App() {
           onCancelSession={handleCancelSession}
           onRestartSession={handleRestartSession}
           onAdmin={() => setScreen('admin')}
+          onKnowledge={handleOpenKnowledge}
         />
       )}
       {screen === 'overview' && session && (
@@ -186,6 +228,7 @@ export default function App() {
           session={session}
           initialPracticeIndex={initPracticeIndex}
           initialTimeRemaining={initTimeRemaining}
+          sessionLifecycle={sessionLifecycle ?? createSessionLifecycle()}
           onEnd={handleEnd}
           onGoHome={() => setScreen('home')}
           onCancelToday={() => handleCancelSession(session.key)}
@@ -198,6 +241,9 @@ export default function App() {
           minutesCompleted={endStats.minutes}
           onHome={handleHome}
         />
+      )}
+      {screen === 'knowledge' && (
+        <KnowledgeScreen onBack={() => setScreen('home')} />
       )}
       {screen === 'admin' && (
         <AdminScreen onBack={() => setScreen('home')} />

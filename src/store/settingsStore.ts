@@ -2,20 +2,32 @@ export type AppLanguage = 'english' | 'hindi';
 export type NarrationMode = 'full' | 'minimal' | 'silent';
 export type ChakraGlowIntensity = 'low' | 'medium' | 'high';
 export type ThemeMode = 'dark' | 'light' | 'auto';
+export type MantraDisplayMode = 'sanskrit' | 'sanskrit_translation' | 'silent';
+export type SacredPracticeWindow = 'brahma_muhurta' | 'sunrise' | 'morning' | 'sunset' | 'evening' | 'custom';
 export const SETTINGS_CHANGED_EVENT = 'ks-settings-changed';
 
 export interface PersonalSettings {
   language: AppLanguage;
   themeMode: ThemeMode;
+  /** @deprecated Hidden legacy setting retained for backward compatibility. */
   narrationMode: NarrationMode;
+  /** @deprecated Hidden legacy setting retained for backward compatibility. */
   voiceEnabled: boolean;
   ambientEnabled: boolean;
+  /** @deprecated Hidden legacy setting retained for backward compatibility. */
   voiceVolume: number;
   ambientVolume: number;
   chakraGlowIntensity: ChakraGlowIntensity;
   showChakraInfo: boolean;
   showBodyMap: boolean;
   remindersEnabled: boolean;
+  /** @deprecated Hidden legacy setting retained for backward compatibility. */
+  openingInvocationEnabled: boolean;
+  openingRitualEnabled: boolean;
+  mantraDisplay: MantraDisplayMode;
+  bellVolume: number;
+  practiceWindow: SacredPracticeWindow;
+  customPracticeWindowLabel: string;
 }
 
 const STORAGE_KEY = 'ks_personal_settings_v1';
@@ -32,6 +44,12 @@ export const DEFAULT_SETTINGS: PersonalSettings = {
   showChakraInfo: true,
   showBodyMap: true,
   remindersEnabled: false,
+  openingInvocationEnabled: true,
+  openingRitualEnabled: true,
+  mantraDisplay: 'sanskrit',
+  bellVolume: 0.92,
+  practiceWindow: 'morning',
+  customPracticeWindowLabel: '',
 };
 
 function clamp01(value: number): number {
@@ -62,6 +80,25 @@ function sanitizeSettings(input: Partial<PersonalSettings> | null | undefined): 
     showChakraInfo: typeof safe.showChakraInfo === 'boolean' ? safe.showChakraInfo : DEFAULT_SETTINGS.showChakraInfo,
     showBodyMap: typeof safe.showBodyMap === 'boolean' ? safe.showBodyMap : DEFAULT_SETTINGS.showBodyMap,
     remindersEnabled: typeof safe.remindersEnabled === 'boolean' ? safe.remindersEnabled : DEFAULT_SETTINGS.remindersEnabled,
+    openingInvocationEnabled: typeof safe.openingInvocationEnabled === 'boolean' ? safe.openingInvocationEnabled : DEFAULT_SETTINGS.openingInvocationEnabled,
+    openingRitualEnabled: typeof safe.openingRitualEnabled === 'boolean' ? safe.openingRitualEnabled : DEFAULT_SETTINGS.openingRitualEnabled,
+    mantraDisplay:
+      safe.mantraDisplay === 'sanskrit_translation' || safe.mantraDisplay === 'silent'
+        ? safe.mantraDisplay
+        : 'sanskrit',
+    bellVolume: typeof safe.bellVolume === 'number' ? clamp01(safe.bellVolume) : DEFAULT_SETTINGS.bellVolume,
+    practiceWindow:
+      safe.practiceWindow === 'brahma_muhurta' ||
+      safe.practiceWindow === 'sunrise' ||
+      safe.practiceWindow === 'morning' ||
+      safe.practiceWindow === 'sunset' ||
+      safe.practiceWindow === 'evening' ||
+      safe.practiceWindow === 'custom'
+        ? safe.practiceWindow
+        : DEFAULT_SETTINGS.practiceWindow,
+    customPracticeWindowLabel: typeof safe.customPracticeWindowLabel === 'string'
+      ? safe.customPracticeWindowLabel.trim().slice(0, 48)
+      : DEFAULT_SETTINGS.customPracticeWindowLabel,
   };
 }
 

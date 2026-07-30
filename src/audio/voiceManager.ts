@@ -8,6 +8,8 @@ export type GuidanceMode = 'full' | 'minimal' | 'silent';
 let selectedVoice: SpeechSynthesisVoice | null = null;
 let narrationRate = 0.78;
 let narrationAudio: HTMLAudioElement | null = null;
+let narrationCancel: (() => void) | null = null;
+let speechCancel: (() => void) | null = null;
 let playbackToken = 0;
 
 const VOICE_STORAGE_KEY = 'ks_voice_name';
@@ -130,6 +132,19 @@ function pickCuesForMode(area: NarrationAreaKey, mode: GuidanceMode): string[] {
   return first === last ? [first] : [first, last];
 }
 
+async function playCues(cues: string[], token: number, volume: number, onStart?: () => void): Promise<boolean> {
+  let started = false;
+  for (const path of cues) {
+    if (token !== playbackToken) break;
+    const ok = await playAudioCue(path, token, volume);
+    if (ok && !started) {
+      started = true;
+      onStart?.();
+    }
+  }
+  return started;
+}
+
 function wait(ms: number): Promise<void> {
   return new Promise(resolve => {
     window.setTimeout(resolve, ms);
@@ -151,6 +166,7 @@ async function playAudioCue(path: string, token: number, volume: number): Promis
 
   return new Promise(resolve => {
     const el = new Audio(path);
+    if (import.meta.env.DEV) console.debug('[voice-cue]', 'start', path, token);
     narrationAudio = el;
     let finished = false;
 
@@ -165,8 +181,12 @@ async function playAudioCue(path: string, token: number, volume: number): Promis
         // ignore
       }
       if (narrationAudio === el) narrationAudio = null;
+      if (narrationCancel === cancel) narrationCancel = null;
+      if (import.meta.env.DEV) console.debug('[voice-cue]', ok ? 'complete' : 'cancel', path, token);
       resolve(ok);
     };
+    const cancel = () => done(false);
+    narrationCancel = cancel;
 
     el.preload = 'auto';
     el.loop = false;
@@ -209,19 +229,43 @@ export async function playNarrationForPractice({
   }
 
   const token = ++playbackToken;
-  let started = false;
-  for (const path of cues) {
-    if (token !== playbackToken) break;
-    const ok = await playAudioCue(path, token, settings.voiceVolume);
-    if (ok && !started) {
-      started = true;
-      onStart?.();
-    }
-  }
+  await playCues(cues, token, settings.voiceVolume, onStart);
 
   if (token === playbackToken) {
     onEnd?.();
   }
+}
+
+export async function playOpeningInvocation({
+  mode,
+  onStart,
+  onEnd,
+}: {
+  mode?: GuidanceMode;
+  onStart?: () => void;
+  onEnd?: () => void;
+} = {}): Promise<boolean> {
+  stopSpeaking();
+  const settings = getSettings();
+  const effectiveMode: GuidanceMode = mode ?? settings.narrationMode;
+  if (effectiveMode === 'silent') {
+    onEnd?.();
+    return false;
+  }
+
+  const cues = pickCuesForMode('opening', effectiveMode);
+  if (!cues.length) {
+    onEnd?.();
+    return false;
+  }
+
+  const token = ++playbackToken;
+  const started = await playCues(cues, token, settings.voiceVolume, onStart);
+  if (token === playbackToken) {
+    onEnd?.();
+    return started;
+  }
+  return false;
 }
 
 export interface SpeakOptions {
@@ -235,19 +279,39 @@ export function speak({ text, onStart, onEnd }: SpeakOptions) {
   if (!text || !('speechSynthesis' in window)) { onEnd?.(); return; }
   const voice = getSelectedVoice();
   const utter = new SpeechSynthesisUtterance(text);
+  let finished = false;
+  const finish = () => {
+    if (finished) return;
+    finished = true;
+    if (speechCancel === finish) speechCancel = null;
+    onEnd?.();
+  };
+  speechCancel = finish;
   utter.rate = getNarrationRate();
   utter.pitch = 0.72;
   utter.volume = clamp01(getSettings().voiceVolume);
   if (voice) { utter.voice = voice; utter.lang = voice.lang; }
   else utter.lang = 'en-IN';
   utter.onstart = () => onStart?.();
-  utter.onend = () => onEnd?.();
-  utter.onerror = () => onEnd?.();
+  utter.onend = finish;
+  utter.onerror = finish;
   window.speechSynthesis.speak(utter);
+}
+
+export function speakAsync(text: string): Promise<boolean> {
+  return new Promise(resolve => {
+    speak({
+      text,
+      onEnd: () => resolve(true),
+    });
+  });
 }
 
 export function stopSpeaking() {
   playbackToken += 1;
+  const cancelNarration = narrationCancel;
+  narrationCancel = null;
+  cancelNarration?.();
   if (narrationAudio) {
     try {
       narrationAudio.pause();
@@ -258,6 +322,9 @@ export function stopSpeaking() {
     }
     narrationAudio = null;
   }
+  const cancelSpeech = speechCancel;
+  speechCancel = null;
+  cancelSpeech?.();
   if ('speechSynthesis' in window) window.speechSynthesis.cancel();
 }
 
