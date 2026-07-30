@@ -4,6 +4,7 @@ import OverviewScreen from './screens/OverviewScreen';
 import ActiveScreen from './screens/ActiveScreen';
 import EndScreen from './screens/EndScreen';
 import AdminScreen from './screens/AdminScreen';
+import KnowledgeScreen from './knowledge/screens/KnowledgeScreen';
 import { SESSIONS, Session } from './data/sessions';
 import {
   clearProgress,
@@ -31,7 +32,7 @@ function unlockAudioSafe() {
   } catch (_) {}
 }
 
-type Screen = 'home' | 'overview' | 'active' | 'end' | 'admin';
+type Screen = 'home' | 'overview' | 'knowledge' | 'active' | 'end' | 'admin';
 type ResolvedTheme = 'dark' | 'light';
 
 function resolveTheme(themeMode: ThemeMode, prefersDark: boolean): ResolvedTheme {
@@ -122,6 +123,10 @@ export default function App() {
     setScreen('overview');
   };
 
+  const handleOpenKnowledge = () => {
+    setScreen('knowledge');
+  };
+
   const handleResume = () => {
     const saved = loadProgress();
     if (!saved) return;
@@ -205,6 +210,7 @@ export default function App() {
           onCancelSession={handleCancelSession}
           onRestartSession={handleRestartSession}
           onAdmin={() => setScreen('admin')}
+          onKnowledge={handleOpenKnowledge}
         />
       )}
       {screen === 'overview' && session && (
@@ -232,6 +238,9 @@ export default function App() {
           minutesCompleted={endStats.minutes}
           onHome={handleHome}
         />
+      )}
+      {screen === 'knowledge' && (
+        <KnowledgeScreen onBack={() => setScreen('home')} />
       )}
       {screen === 'admin' && (
         <AdminScreen onBack={() => setScreen('home')} />

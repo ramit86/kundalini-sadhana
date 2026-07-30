@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Sun, Moon, RotateCcw, RefreshCw, Settings, Check, Calendar, SlidersHorizontal, X, Download, Share2, Sparkles } from 'lucide-react';
+import { Sun, Moon, RotateCcw, RefreshCw, Settings, Check, Calendar, SlidersHorizontal, X, Download, Share2, Sparkles, BookOpen } from 'lucide-react';
 import { loadProgress } from '../store/sessionStore';
 import { SESSIONS } from '../data/sessions';
 import { TodayStatusMap } from '../lib/tracker';
@@ -16,6 +16,7 @@ interface Props {
   onCancelSession: (key: 'morning' | 'night') => void;
   onRestartSession: (key: 'morning' | 'night') => void;
   onAdmin?: () => void;
+  onKnowledge?: () => void;
 }
 
 interface BeforeInstallPromptEvent extends Event {
@@ -23,7 +24,7 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>;
 }
 
-export default function HomeScreen({ onSelectSession, onResume, todayStatus, streaks, onCancelSession, onRestartSession, onAdmin }: Props) {
+export default function HomeScreen({ onSelectSession, onResume, todayStatus, streaks, onCancelSession, onRestartSession, onAdmin, onKnowledge }: Props) {
   const saved = loadProgress();
   const resumeSession = saved ? SESSIONS[saved.sessionKey as 'morning' | 'night'] : null;
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -235,6 +236,49 @@ export default function HomeScreen({ onSelectSession, onResume, todayStatus, str
               streaks={streaks}
             />
           </div>
+
+          {onKnowledge && (
+            <div style={{ ...anim(90), marginBottom: '1.35rem' }}>
+              <button
+                onClick={onKnowledge}
+                style={{
+                  width: '100%',
+                  padding: '12px 14px',
+                  background: 'var(--card-bg-soft)',
+                  border: '1px solid var(--border-soft)',
+                  borderRadius: 16,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  textAlign: 'left',
+                }}
+              >
+                <div style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 11,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: 'rgba(200,169,110,0.08)',
+                  color: 'var(--gold-accent)',
+                  flexShrink: 0,
+                }}>
+                  <BookOpen size={14} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontFamily: "'Raleway', sans-serif", fontSize: '9px', color: 'var(--gold-accent)', letterSpacing: '0.16em', textTransform: 'uppercase', marginBottom: 2 }}>
+                    Knowledge Library
+                  </div>
+                  <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1rem', color: 'var(--text-muted)' }}>
+                    Safety, preparation, Sanskrit, chakra notes, and gentle study.
+                  </div>
+                </div>
+                <span style={{ color: 'var(--text-subtle)', fontSize: 20 }}>›</span>
+              </button>
+            </div>
+          )}
 
           {/* Practice journey */}
           <div style={{ ...anim(100), marginBottom: '1.35rem' }}>
