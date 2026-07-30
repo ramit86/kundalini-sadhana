@@ -21,10 +21,6 @@ const AMBIENT_FADE_MS = 1250;
 const BELL_PATH = '/audio/rituals/meditation-bell.mp3';
 const BELL_DURATION_MS = 3600;
 
-function devLog(...args: unknown[]) {
-  void args;
-}
-
 export function getAudioCtx(): AudioContext {
   if (!audioCtx) {
     const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
@@ -41,13 +37,10 @@ export function unlockAudio() {
 export async function resumeAudioContextFromGesture(): Promise<void> {
   try {
     const ctx = getAudioCtx();
-    devLog('audio context state', ctx.state);
     if (ctx.state === 'suspended') {
       await ctx.resume();
-      devLog('audio context state', ctx.state);
     }
-  } catch (error) {
-    devLog('ambient failed with reason', error);
+  } catch {
   }
 }
 
@@ -132,13 +125,10 @@ export function ringBell(times = 1) {
 
 // ── Ambient Mantra Loop ─────────────────────────────────
 export async function startAmbient(chakra: ChakraKey, volume: number): Promise<void> {
-  devLog('ambient requested', chakra);
   try {
     const ctx = getAudioCtx();
-    devLog('audio context state', ctx.state);
     if (ctx.state === 'suspended') {
       await ctx.resume();
-      devLog('audio context state', ctx.state);
     }
 
     const path = mapChakraToAmbientPath(chakra);
@@ -146,9 +136,20 @@ export async function startAmbient(chakra: ChakraKey, volume: number): Promise<v
 
     if (ambientTrack && ambientTrack.path === path) {
       ambientTrack.targetVolume = target;
+      ambientTrack.element.muted = false;
       ambientTrack.element.volume = target;
+      if (ambientTrack.element.paused || ambientTrack.element.ended) {
+        try {
+          if (ambientTrack.element.ended) {
+            ambientTrack.element.currentTime = 0;
+          }
+          await ambientTrack.element.play();
+        } catch (error) {
+          ambientFileMissing = true;
+          return;
+        }
+      }
       ambientFileMissing = false;
-      devLog('ambient started', `file:${path}`);
       return;
     }
 
@@ -169,7 +170,6 @@ export async function startAmbient(chakra: ChakraKey, volume: number): Promise<v
       await next.play();
     } catch (error) {
       ambientFileMissing = true;
-      devLog('ambient failed with reason', error);
       return;
     }
 
@@ -178,7 +178,6 @@ export async function startAmbient(chakra: ChakraKey, volume: number): Promise<v
         next.pause();
       } catch (_) {}
       ambientFileMissing = true;
-      devLog('ambient failed with reason', `missing file: ${path}`);
       return;
     }
 
@@ -198,9 +197,7 @@ export async function startAmbient(chakra: ChakraKey, volume: number): Promise<v
       });
     }
 
-    devLog('ambient started', `file:${path}`);
   } catch (error) {
-    devLog('ambient failed with reason', error);
   }
 }
 
@@ -225,9 +222,7 @@ export function stopAmbient(fade = true): Promise<void> {
       current.currentTime = 0;
       current.src = '';
     }
-    devLog('ambient stopped', 'file');
   } catch (error) {
-    devLog('ambient failed with reason', error);
   }
   return Promise.resolve();
 }

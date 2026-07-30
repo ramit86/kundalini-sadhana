@@ -119,12 +119,6 @@ function serializePracticeStates(states: Record<number, PracticeRuntimeState>) {
   );
 }
 
-function debugQuietly(...args: unknown[]) {
-  if (import.meta.env.DEV) {
-    console.debug('[session-playback]', JSON.stringify(args.length === 1 ? args[0] : args));
-  }
-}
-
 function resolveInitialPhase(saved: SavedProgress | null, shouldAutoStartOpening: boolean): SessionPhase {
   if (shouldAutoStartOpening) return 'opening_invocation';
   if (!isSessionPhase(saved?.sessionPhase)) return 'paused';
@@ -263,13 +257,6 @@ export function useSessionPlayback({
       event,
     };
     setTransitionDebug(next);
-    debugQuietly({
-      transitionId: next.id,
-      state: next.state,
-      sourcePractice: next.sourcePractice,
-      destinationPractice: next.destinationPractice,
-      event: next.event,
-    });
   }, []);
 
   const resetControlsTimer = useCallback(() => {
@@ -295,7 +282,6 @@ export function useSessionPlayback({
   }, [setAudioSnapshot]);
 
   const cancelPendingFlow = useCallback((nextToken?: number, stopAudio = true) => {
-    debugQuietly({ event: 'cancel-flow', phase: sessionPhaseRef.current });
     transitionTokenRef.current = nextToken ?? transitionTokenRef.current + 1;
     clearTimerInterval();
     if (stopAudio) stopPlaybackAudio();
@@ -306,7 +292,6 @@ export function useSessionPlayback({
   }, [clearTimerInterval, enterPhase, sessionPhaseRef, stopPlaybackAudio]);
 
   const disposePendingFlow = useCallback(() => {
-    debugQuietly({ event: 'dispose-flow', phase: sessionPhaseRef.current });
     transitionTokenRef.current += 1;
     clearTimerInterval();
     stopPlaybackAudio();
@@ -363,6 +348,7 @@ export function useSessionPlayback({
   const preparePractice = useCallback(async (
     nextPracticeIndex: number,
     token: number,
+    opts?: { persistProgress?: boolean },
   ) => {
     const nextPractice = session.practices[nextPracticeIndex];
     if (!nextPractice) return false;
@@ -380,7 +366,7 @@ export function useSessionPlayback({
     const nextTimeRemaining = savedNextState?.completed
       ? nextPractice.duration
       : savedNextState?.timeRemaining ?? nextPractice.duration;
-    setCurrentPractice(nextPracticeIndex, nextTimeRemaining, { completed: false });
+    setCurrentPractice(nextPracticeIndex, nextTimeRemaining, { completed: false }, opts?.persistProgress ?? true);
     openingInvocationSeenRef.current = true;
 
     if (token !== transitionTokenRef.current) return false;
@@ -402,19 +388,13 @@ export function useSessionPlayback({
 
     setTransitionDebugEvent('active', 'timer-start', '', nextPractice.name);
     setRunningState(true);
-    debugQuietly({
-      transitionId: transitionTokenRef.current,
-      state: 'timer-start',
-      sourcePractice: session.practices[practiceRef.current]?.name,
-      destinationPractice: nextPractice.name,
-    });
 
     return true;
   }, [ambientOn, ambientVol, enterPhase, session.practices, setCurrentPractice, setRunningState, setTransitionDebugEvent, waitForToken]);
 
   const startTransitionToPractice = useCallback(async (
     nextPracticeIndex: number,
-    opts?: { manualSkip?: boolean; sourcePracticeIndex?: number; keepCurrentProgress?: boolean },
+    opts?: { manualSkip?: boolean; sourcePracticeIndex?: number; keepCurrentProgress?: boolean; persistProgress?: boolean },
   ) => {
     const nextPractice = session.practices[nextPracticeIndex];
     if (!nextPractice) return;
@@ -444,7 +424,9 @@ export function useSessionPlayback({
           },
         };
         practiceStatesRef.current = next;
-        persistProgressSnapshot(practiceRef.current, timeRemainingRef.current, next, openingInvocationSeenRef.current);
+        if (opts?.persistProgress !== false) {
+          persistProgressSnapshot(practiceRef.current, timeRemainingRef.current, next, openingInvocationSeenRef.current);
+        }
         return next;
       });
     }
@@ -468,7 +450,7 @@ export function useSessionPlayback({
     await waitForToken(Math.max(0, getBellBusyMsRemaining() + 80), token);
     if (token !== transitionTokenRef.current) return;
 
-    await preparePractice(nextPracticeIndex, token);
+    await preparePractice(nextPracticeIndex, token, { persistProgress: opts?.persistProgress !== false });
   }, [cancelPendingFlow, clearTimerInterval, enterPhase, persistProgressSnapshot, preparePractice, session.practices, setTransitionDebugEvent, waitForToken]);
 
   const startOpeningInvocation = useCallback(async () => {
@@ -806,10 +788,16 @@ export function useSessionPlayback({
 
     const next = practiceRef.current + 1;
     if (practiceRef.current !== canonicalPracticeIndexRef.current) {
-      const target = session.practices[next];
-      if (!target) return;
-      const saved = practiceStatesRef.current[next];
-      setCurrentPractice(next, saved?.timeRemaining ?? target.duration, { completed: saved?.completed ?? false }, false);
+      const canonicalIndex = canonicalPracticeIndexRef.current;
+      const canonicalPractice = session.practices[canonicalIndex];
+      if (!canonicalPractice) return;
+      const saved = practiceStatesRef.current[canonicalIndex];
+      setCurrentPractice(
+        canonicalIndex,
+        saved?.timeRemaining ?? canonicalPractice.duration,
+        { completed: saved?.completed ?? false },
+        false,
+      );
       return;
     }
     if (isRunning && timeRemainingRef.current > 0) {
