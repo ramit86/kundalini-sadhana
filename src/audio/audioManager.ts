@@ -11,15 +11,36 @@ interface AmbientTrackState {
   targetVolume: number;
 }
 
+type AudioRole = 'bell' | 'opening-mantra' | 'ambient' | 'one-shot';
+
+interface AudioSnapshot {
+  paused: boolean;
+  ended: boolean;
+  muted: boolean;
+  volume: number;
+  readyState: number;
+  networkState: number;
+  currentTime: number;
+  src: string;
+  visibilityState: string;
+  audioCtxState: AudioContextState | 'none';
+}
+
 let ambientTrack: AmbientTrackState | null = null;
 let ambientFileMissing = false;
 let bellBusyUntil = 0;
+let ambientElement: HTMLAudioElement | null = null;
+let openingMantraAudio: HTMLAudioElement | null = null;
+const oneShotAudioByPath = new Map<string, HTMLAudioElement>();
 let oneShotAudio: HTMLAudioElement | null = null;
 let oneShotCancel: (() => void) | null = null;
+let ambientFadeCancel: (() => void) | null = null;
+let ambientFadeToken = 0;
 
 const AMBIENT_FADE_MS = 1250;
 const BELL_PATH = '/audio/rituals/meditation-bell.mp3';
 const BELL_DURATION_MS = 3600;
+const OPENING_MANTRA_PATH = '/audio/mantras/asato-ma-opening.mp3';
 
 export function getAudioCtx(): AudioContext {
   if (!audioCtx) {
@@ -30,8 +51,34 @@ export function getAudioCtx(): AudioContext {
   return audioCtx;
 }
 
-export function unlockAudio() {
-  try { getAudioCtx(); } catch (_) {}
+export async function unlockAudio(opts?: { ambientChakra?: ChakraKey }): Promise<void> {
+  const promises: Array<Promise<unknown>> = [];
+  try {
+    const ctx = getAudioCtx();
+    if (ctx.state === 'suspended') {
+      promises.push(ctx.resume());
+    }
+  } catch (_) {}
+
+  try {
+    const bell = getBellAudio();
+    promises.push(primeAudioElement(bell, 'bell', BELL_PATH, 1));
+  } catch (_) {}
+
+  try {
+    const mantra = getOpeningMantraAudio();
+    promises.push(primeAudioElement(mantra, 'opening-mantra', OPENING_MANTRA_PATH, 0.9));
+  } catch (_) {}
+
+  if (opts?.ambientChakra) {
+    try {
+      const ambientPath = mapChakraToAmbientPath(opts.ambientChakra);
+      const ambient = getAmbientAudio();
+      promises.push(primeAudioElement(ambient, 'ambient', ambientPath, 0));
+    } catch (_) {}
+  }
+
+  await Promise.allSettled(promises);
 }
 
 export async function resumeAudioContextFromGesture(): Promise<void> {
@@ -81,7 +128,7 @@ export async function playOneShotAudio(path: string, volume = 1): Promise<boolea
   stopOneShotAudio();
 
   return new Promise(resolve => {
-    const el = new Audio(path);
+    const el = getOneShotAudio(path);
     oneShotAudio = el;
     let finished = false;
 
@@ -102,14 +149,12 @@ export async function playOneShotAudio(path: string, volume = 1): Promise<boolea
     const cancel = () => done(false);
     oneShotCancel = cancel;
 
-    el.preload = 'auto';
-    el.loop = false;
-    el.muted = false;
-    el.volume = clamp01(volume);
-    el.setAttribute('playsinline', 'true');
+    void safePlayAudio(el, 'one-shot', clamp01(volume), { restart: true, path }).then(ok => {
+      if (!ok) done(false);
+    });
+
     el.onended = () => done(true);
     el.onerror = () => done(false);
-    el.play().catch(() => done(false));
   });
 }
 
@@ -119,13 +164,15 @@ export function ringBell(times = 1) {
     void times;
     bellBusyUntil = Date.now() + BELL_DURATION_MS;
     stopOneShotAudio();
-    void playOneShotAudio(BELL_PATH, clamp01(getSettings().bellVolume));
+    const bell = getBellAudio();
+    void safePlayAudio(bell, 'bell', clamp01(getSettings().bellVolume), { restart: true, path: BELL_PATH });
   } catch (_) {}
 }
 
 // ── Ambient Mantra Loop ─────────────────────────────────
 export async function startAmbient(chakra: ChakraKey, volume: number): Promise<void> {
   try {
+    cancelAmbientFade();
     const ctx = getAudioCtx();
     if (ctx.state === 'suspended') {
       await ctx.resume();
@@ -133,70 +180,35 @@ export async function startAmbient(chakra: ChakraKey, volume: number): Promise<v
 
     const path = mapChakraToAmbientPath(chakra);
     const target = clamp01(volume);
+    const ambient = getAmbientAudio();
+    const changedPath = !ambientTrack || ambientTrack.path !== path;
 
-    if (ambientTrack && ambientTrack.path === path) {
-      ambientTrack.targetVolume = target;
-      ambientTrack.element.muted = false;
-      ambientTrack.element.volume = target;
-      if (ambientTrack.element.paused || ambientTrack.element.ended) {
-        try {
-          if (ambientTrack.element.ended) {
-            ambientTrack.element.currentTime = 0;
-          }
-          await ambientTrack.element.play();
-        } catch (error) {
-          ambientFileMissing = true;
-          return;
-        }
-      }
-      ambientFileMissing = false;
-      return;
-    }
-
-    const next = new Audio(path);
-    next.loop = true;
-    next.preload = 'auto';
-    next.muted = false;
-    next.volume = 0;
-    next.setAttribute('playsinline', 'true');
-
-    let loadError = false;
-    next.onerror = () => {
-      loadError = true;
-      ambientFileMissing = true;
-    };
-
-    try {
-      await next.play();
-    } catch (error) {
-      ambientFileMissing = true;
-      return;
-    }
-
-    if (loadError) {
+    if (changedPath) {
       try {
-        next.pause();
+        ambient.pause();
       } catch (_) {}
+      try {
+        ambient.currentTime = 0;
+      } catch (_) {}
+      ambient.src = path;
+      ambient.load();
+    }
+
+    const startingVolume = changedPath ? 0 : target;
+    const played = await safePlayAudio(ambient, 'ambient', startingVolume, {
+      restart: changedPath || ambient.ended,
+      path,
+    });
+    if (!played) {
       ambientFileMissing = true;
       return;
     }
 
-    const previous = ambientTrack?.element ?? null;
-    ambientTrack = { element: next, path, chakra, targetVolume: target };
     ambientFileMissing = false;
-    fadeVolume(next, 0, target, AMBIENT_FADE_MS);
-
-    if (previous) {
-      const from = previous.volume;
-      fadeVolume(previous, from, 0, 500, () => {
-        try {
-          previous.pause();
-          previous.currentTime = 0;
-          previous.src = '';
-        } catch (_) {}
-      });
+    ambientTrack = { element: ambient, path, chakra, targetVolume: target };
+    if (changedPath || ambient.volume !== target) {
+      ambientFadeCancel = fadeVolume(ambient, ambient.volume, target, AMBIENT_FADE_MS, ++ambientFadeToken);
     }
-
   } catch (error) {
   }
 }
@@ -206,14 +218,16 @@ export function stopAmbient(fade = true): Promise<void> {
   try {
     const current = ambientTrack.element;
     ambientTrack = null;
+    cancelAmbientFade();
     if (fade) {
       return new Promise(resolve => {
-        fadeVolume(current, current.volume, 0, AMBIENT_FADE_MS, () => {
+        ambientFadeCancel = fadeVolume(current, current.volume, 0, AMBIENT_FADE_MS, ++ambientFadeToken, () => {
           try {
             current.pause();
             current.currentTime = 0;
             current.src = '';
           } catch (_) {}
+          if (ambientFadeCancel) ambientFadeCancel = null;
           resolve();
         });
       });
@@ -253,22 +267,197 @@ function mapChakraToAmbientPath(chakra: ChakraKey): string {
   return track?.path ?? '/audio/ambient/integration/base.mp3';
 }
 
+function getBellAudio() {
+  return getOrCreateAudio('bell', BELL_PATH, false, 1);
+}
+
+function getOpeningMantraAudio() {
+  if (!openingMantraAudio) {
+    openingMantraAudio = createManagedAudio('opening-mantra', OPENING_MANTRA_PATH, false, 0.9);
+  }
+  return openingMantraAudio;
+}
+
+function getAmbientAudio() {
+  if (!ambientElement) {
+    ambientElement = createManagedAudio('ambient', '', true, 0);
+  }
+  return ambientElement;
+}
+
+function getOneShotAudio(path: string) {
+  const existing = oneShotAudioByPath.get(path);
+  if (existing) return existing;
+  const el = createManagedAudio('one-shot', path, false, 1);
+  oneShotAudioByPath.set(path, el);
+  return el;
+}
+
+function getOrCreateAudio(
+  role: Exclude<AudioRole, 'ambient' | 'one-shot'>,
+  path: string,
+  loop: boolean,
+  defaultVolume: number,
+) {
+  const key = `${role}:${path}`;
+  const existing = oneShotAudioByPath.get(key);
+  if (existing) return existing;
+  const el = createManagedAudio(role, path, loop, defaultVolume);
+  oneShotAudioByPath.set(key, el);
+  return el;
+}
+
+function createManagedAudio(
+  role: AudioRole,
+  path: string,
+  loop: boolean,
+  defaultVolume: number,
+) {
+  const el = new Audio(path);
+  el.loop = loop;
+  el.preload = 'auto';
+  el.muted = false;
+  el.volume = clamp01(defaultVolume);
+  el.setAttribute('playsinline', 'true');
+  if (import.meta.env.DEV) {
+    el.setAttribute('webkit-playsinline', 'true');
+  }
+  el.addEventListener('error', () => {
+    if (role === 'ambient') ambientFileMissing = true;
+    debugAudio(role, 'element-error', el);
+  });
+  return el;
+}
+
+async function primeAudioElement(
+  element: HTMLAudioElement,
+  role: AudioRole,
+  path: string,
+  defaultVolume: number,
+) {
+  if (path && element.src !== new URL(path, window.location.href).href) {
+    element.src = path;
+    element.load();
+  }
+  const prevMuted = element.muted;
+  const prevVolume = element.volume;
+  element.muted = true;
+  element.volume = 0;
+  debugAudio(role, 'unlock-request', element);
+  try {
+    const play = element.play();
+    if (play) await play;
+    debugAudio(role, 'unlock-play-resolved', element);
+  } catch (error) {
+    debugAudio(role, 'unlock-play-rejected', element, error);
+  } finally {
+    try {
+      element.pause();
+    } catch (_) {}
+    try {
+      element.currentTime = 0;
+    } catch (_) {}
+    element.muted = prevMuted;
+    element.volume = clamp01(prevVolume || defaultVolume);
+  }
+}
+
+async function safePlayAudio(
+  element: HTMLAudioElement,
+  role: AudioRole,
+  volume: number,
+  opts?: { restart?: boolean; path?: string },
+): Promise<boolean> {
+  if (opts?.path && element.src !== new URL(opts.path, window.location.href).href) {
+    element.src = opts.path;
+    element.load();
+  }
+  element.muted = false;
+  element.volume = clamp01(volume);
+  if (opts?.restart || element.ended) {
+    try {
+      element.currentTime = 0;
+    } catch (_) {}
+  }
+  if (element.readyState === 0) {
+    try {
+      element.load();
+    } catch (_) {}
+  }
+  debugAudio(role, 'play-request', element);
+  try {
+    const play = element.play();
+    if (play) await play;
+    debugAudio(role, 'play-resolved', element);
+    return true;
+  } catch (error) {
+    debugAudio(role, 'play-rejected', element, error);
+    return false;
+  }
+}
+
+function debugAudio(
+  role: AudioRole,
+  event: string,
+  element: HTMLAudioElement,
+  error?: unknown,
+) {
+  if (!import.meta.env.DEV) return;
+  const snapshot: AudioSnapshot = {
+    paused: element.paused,
+    ended: element.ended,
+    muted: element.muted,
+    volume: element.volume,
+    readyState: element.readyState,
+    networkState: element.networkState,
+    currentTime: Number.isFinite(element.currentTime) ? Number(element.currentTime.toFixed(3)) : element.currentTime,
+    src: element.currentSrc || element.src,
+    visibilityState: typeof document !== 'undefined' ? document.visibilityState : 'unknown',
+    audioCtxState: getAudioContextState(),
+  };
+  const payload = error instanceof Error
+    ? { name: error.name, message: error.message }
+    : error ? { error: String(error) } : undefined;
+  console.info('[audio]', role, event, payload ? { ...snapshot, ...payload } : snapshot);
+}
+
 function fadeVolume(
   element: HTMLAudioElement,
   from: number,
   to: number,
   durationMs: number,
+  token: number,
   onDone?: () => void,
 ) {
   const start = performance.now();
   const run = (now: number) => {
+    if (!isAmbientFadeTokenCurrent(token)) return;
     const t = Math.min(1, (now - start) / durationMs);
     element.volume = clamp01(from + (to - from) * t);
     if (t < 1) {
       requestAnimationFrame(run);
     } else {
+      ambientFadeCancel = null;
       onDone?.();
     }
   };
+  const cancel = () => {
+    if (!isAmbientFadeTokenCurrent(token)) return;
+    ambientFadeCancel = null;
+    onDone?.();
+  };
+  ambientFadeCancel = cancel;
   requestAnimationFrame(run);
+  return cancel;
+}
+
+function cancelAmbientFade() {
+  const cancel = ambientFadeCancel;
+  cancel?.();
+  ambientFadeCancel = null;
+  ambientFadeToken += 1;
+}
+
+function isAmbientFadeTokenCurrent(token: number) {
+  return token === ambientFadeToken;
 }

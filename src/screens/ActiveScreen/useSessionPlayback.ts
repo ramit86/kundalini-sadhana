@@ -5,6 +5,7 @@ import {
   stopAmbient,
   setAmbientVolume,
   ringBell,
+  unlockAudio,
   resumeAudioContextFromGesture,
   getAudioContextState,
   isAmbientActive,
@@ -242,6 +243,27 @@ export function useSessionPlayback({
       ambientMissing: isAmbientFileMissing(),
     });
   }, []);
+
+  const recoverAmbientAfterInterruption = useCallback(async (source: 'visibilitychange' | 'pageshow' | 'focus') => {
+    if (!isRunning || sessionPhaseRef.current !== 'active' || !ambientOn) return;
+    const currentPractice = session.practices[practiceRef.current];
+    if (!currentPractice) return;
+    if (import.meta.env.DEV) {
+      console.info('[audio]', 'ambient-recover', {
+        source,
+        practice: currentPractice.name,
+        sessionPhase: sessionPhaseRef.current,
+        audioCtxState: getAudioContextState(),
+        visibilityState: document.visibilityState,
+      });
+    }
+    try {
+      await resumeAudioContextFromGesture();
+      await startAmbient(currentPractice.chakra, ambientVol);
+    } finally {
+      setAudioSnapshot();
+    }
+  }, [ambientOn, ambientVol, isRunning, session.practices, setAudioSnapshot, sessionPhaseRef]);
 
   const setTransitionDebugEvent = useCallback((
     state: SessionPhase,
@@ -696,18 +718,32 @@ export function useSessionPlayback({
     const handleVisibility = () => {
       if (document.visibilityState === 'hidden') {
         stopSessionActivity();
+        return;
       }
+      if (document.visibilityState === 'visible') {
+        void recoverAmbientAfterInterruption('visibilitychange');
+      }
+    };
+    const handlePageShow = () => {
+      void recoverAmbientAfterInterruption('pageshow');
+    };
+    const handleFocus = () => {
+      void recoverAmbientAfterInterruption('focus');
     };
     const handlePageHide = () => {
       stopSessionActivity();
     };
     document.addEventListener('visibilitychange', handleVisibility);
     window.addEventListener('pagehide', handlePageHide);
+    window.addEventListener('pageshow', handlePageShow);
+    window.addEventListener('focus', handleFocus);
     return () => {
       document.removeEventListener('visibilitychange', handleVisibility);
       window.removeEventListener('pagehide', handlePageHide);
+      window.removeEventListener('pageshow', handlePageShow);
+      window.removeEventListener('focus', handleFocus);
     };
-  }, [stopSessionActivity]);
+  }, [recoverAmbientAfterInterruption, stopSessionActivity]);
 
   useEffect(() => {
     if (isRunning) {
@@ -758,6 +794,7 @@ export function useSessionPlayback({
       return;
     }
 
+    void unlockAudio({ ambientChakra: session.practices[practiceRef.current]?.chakra });
     await resumeAudioContextFromGesture();
     const nextPractice = session.practices[practiceRef.current];
     if (!nextPractice) return;

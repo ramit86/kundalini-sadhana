@@ -14,6 +14,7 @@ import {
   setActiveSessionLifecycle,
   SessionLifecycle,
 } from './store/sessionStore';
+import { unlockAudio } from './audio/audioManager';
 import { getSettings, SETTINGS_CHANGED_EVENT, ThemeMode } from './store/settingsStore';
 import {
   recordCompletion,
@@ -132,6 +133,7 @@ export default function App() {
     if (!saved) return;
     const s = SESSIONS[saved.sessionKey as 'morning' | 'night'];
     if (!s) return;
+    void unlockAudio({ ambientChakra: s.practices[saved.resumePracticeIndex ?? saved.practiceIndex]?.chakra });
     const lifecycle = saved.sessionId && saved.sessionStartedAt
       ? { sessionId: saved.sessionId, sessionStartedAt: saved.sessionStartedAt }
       : createSessionLifecycle();
@@ -144,6 +146,7 @@ export default function App() {
   };
 
   const handleBegin = () => {
+    void unlockAudio({ ambientChakra: session?.practices[0]?.chakra });
     const lifecycle = createSessionLifecycle();
     setSessionLifecycle(lifecycle);
     setActiveSessionLifecycle(lifecycle);
